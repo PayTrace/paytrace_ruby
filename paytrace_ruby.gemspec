@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = "paytrace_ruby"
   spec.version       = PaytraceRuby::VERSION
   spec.authors       = ["Trevor Redfern"]
-  spec.email         = ["trevorredfern@gmail.com"]
+  spec.email         = ["trevor@paytrace.com"]
   spec.description   = %q{TODO: Write a gem description}
   spec.summary       = %q{TODO: Write a gem summary}
   spec.homepage      = ""
