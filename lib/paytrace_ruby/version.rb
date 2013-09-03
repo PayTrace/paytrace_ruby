@@ -1,3 +1,3 @@
-module PaytraceRuby
+module PayTrace
   VERSION = "0.0.1"
 end

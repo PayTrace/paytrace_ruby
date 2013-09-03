@@ -4,13 +4,13 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'paytrace_ruby/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "paytrace_ruby"
-  spec.version       = PaytraceRuby::VERSION
+  spec.name          = "paytrace"
+  spec.version       = PayTrace::VERSION
   spec.authors       = ["Trevor Redfern"]
   spec.email         = ["trevor@paytrace.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
-  spec.homepage      = ""
+  spec.description   = %q{Integration with PayTrace Payment Gateway}
+  spec.summary       = %q{Integration providing access to the transaction processing API for PayTrace}
+  spec.homepage      = "http://github.com/PayTrace/paytrace_ruby"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
