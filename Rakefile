@@ -1,15 +1,15 @@
 require "bundler/gem_tasks"
 require 'rake/testtask'
-require 'paytrace_ruby/version'
+require 'paytrace/version'
 
 Rake::TestTask.new do |t|
-   t.libs << "paytrace_ruby"
-   t.test_files = FileList['test/test*.rb']
+   t.libs << "lib/paytrace_ruby"
+   t.test_files = FileList['test/**/*_spec.rb']
    t.verbose = true
 end
 
 task :build do 
-  system "gem build paytrace_ruby.gemspec"
+  system "gem build paytrace.gemspec"
 end
 
 task :release => :build do
