@@ -2,7 +2,13 @@
 
 ![Build Status](https://www.codeship.io/projects/611ffe60-f3ee-0130-0299-1a84c3740ef1/status)
 
-TODO: Write a gem description
+This gem integrates with the PayTrace API. It provides functionality to the
+publicly available functionality including:
+
+ * Processing Transactions
+ * Creating Customers
+ * Exporting Transaction or Customer Data
+
 
 ## Installation
 
