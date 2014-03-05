@@ -9,7 +9,7 @@ module PayTrace
                       type: TransactionTypes::SALE)
       request = PayTrace::API::Request.new(transaction: t)
       gateway = PayTrace::API::Gateway.new
-      gateway.send_request(request)
+      t.response = gateway.send_request(request)
       t
     end
   end
@@ -20,12 +20,14 @@ module PayTrace
     end
 
     attr_reader :amount, :credit_card, :type
+    attr_accessor :response
 
     def initialize(amount: nil, credit_card: nil, type: nil)
       @amount = amount
       @credit_card = CreditCard.new(credit_card)
       @type = type
     end
+
   end
 
   module TransactionTypes

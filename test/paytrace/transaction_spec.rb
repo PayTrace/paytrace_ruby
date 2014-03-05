@@ -21,5 +21,6 @@ describe PayTrace::Transaction do
     t.credit_card.card_number.must_equal "1234123412341234"
     t.credit_card.expiration_month.must_equal 10
     t.credit_card.expiration_year.must_equal 24
+    t.response.must_equal response
   end
 end
