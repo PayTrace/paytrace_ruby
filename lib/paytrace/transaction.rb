@@ -10,7 +10,6 @@ module PayTrace
       request = PayTrace::API::Request.new(transaction: t)
       gateway = PayTrace::API::Gateway.new
       gateway.send_request(request)
-
       t
     end
   end

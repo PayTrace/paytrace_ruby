@@ -15,7 +15,7 @@ describe PayTrace::API::Gateway do
     request.stubs(:generate_paramlist).returns("foo")
 
     response = mock()
-    PayTrace::API::Response.stubs(:parse).returns(response)
+    PayTrace::API::Response.stubs(:new).returns(response)
 
     gateway = PayTrace::API::Gateway.new(connection: test)
     r = gateway.send_request request

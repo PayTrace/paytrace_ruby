@@ -13,9 +13,9 @@ module PayTrace
       end
 
       def send_request(request)
-        PayTrace::API::Response.parse(
-          @connection.post URL, parmlist: request.generate_paramlist
-        )
+        res = @connection.post URL, parmlist: request.generate_paramlist
+        puts res.body
+        PayTrace::API::Response.new(res)
       end
     end
   end
