@@ -1,9 +1,17 @@
+require 'paytrace/api/request'
+require 'paytrace/api/gateway'
+
 module PayTrace
   module TransactionOperations
     def sale(amount: nil, credit_card: nil, options: {})
-      Transaction.new(amount: amount, 
+      t = Transaction.new(amount: amount, 
                       credit_card: credit_card, 
                       type: TransactionTypes::SALE)
+      request = PayTrace::API::Request.new(transaction: t)
+      gateway = PayTrace::API::Gateway.new
+      gateway.send_request(request)
+
+      t
     end
   end
 

@@ -2,6 +2,9 @@ require File.expand_path(File.dirname(__FILE__) + '../../test_helper.rb')
 
 describe PayTrace::Transaction do
   it "can charge sales to a credit card" do
+    response = mock()
+    PayTrace::API::Gateway.any_instance.expects(:send_request).returns(response)
+
     t = PayTrace::Transaction.sale(
       amount: "1242.32",
       credit_card: {
@@ -18,6 +21,5 @@ describe PayTrace::Transaction do
     t.credit_card.card_number.must_equal "1234123412341234"
     t.credit_card.expiration_month.must_equal 10
     t.credit_card.expiration_year.must_equal 24
-
   end
 end
