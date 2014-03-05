@@ -13,7 +13,7 @@ module PayTrace
       end
 
       def send_request(request)
-        res = @connection.post URL, parmlist: request.generate_paramlist
+        res = @connection.post URL, parmlist: request.to_parms_string
         puts res.body
         PayTrace::API::Response.new(res)
       end

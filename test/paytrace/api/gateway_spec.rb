@@ -12,7 +12,7 @@ describe PayTrace::API::Gateway do
     end
 
     request = mock()
-    request.stubs(:generate_paramlist).returns("foo")
+    request.stubs(:to_parms_string).returns("foo")
 
     response = mock()
     PayTrace::API::Response.stubs(:new).returns(response)
