@@ -11,6 +11,7 @@ module PayTrace
         terms: "TERMS",
         transaction_type: "TRANXTYPE",
         user_name: "UN",
+        customer_id: "CUSTID"
       }
     end
   end

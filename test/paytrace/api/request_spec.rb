@@ -26,10 +26,10 @@ describe PayTrace::API::Request do
 
   it "can add a transaction to its param list" do
     t = PayTrace::Transaction.new(amount: "23.12", 
-                                  credit_card: {
+                                  credit_card: PayTrace::CreditCard.new({
                                     card_number: "1234123412341234",
                                     expiration_year: 24,
-                                    expiration_month: 10 },
+                                    expiration_month: 10 }),
                                  type: PayTrace::TransactionTypes::SALE)
     r = PayTrace::API::Request.new(transaction: t)
 
@@ -44,4 +44,21 @@ describe PayTrace::API::Request do
     url.must_equal "UN~test|PSWD~test|TERMS~Y|CC~1234123412341234|EXPMNTH~10|EXPYR~24|TRANXTYPE~SALE|METHOD~PROCESSTRANX|AMOUNT~23.12|"
   end
 
+  it "can use a customer id for processing the transaction" do
+    t = PayTrace::Transaction.new(amount: "12.34",
+                                  customer: PayTrace::Customer.new(customer_id: "1234"),
+                                  type: PayTrace::TransactionTypes::SALE
+                                 )
+    r = PayTrace::API::Request.new(transaction: t)
+    r.params[:customer_id].must_equal "1234"
+    r.params[:amount].must_equal "12.34"
+
+    url = r.to_parms_string
+
+    #Make sure it puts in values we expect
+    url.must_match /|CUSTID~1234|/
+    url.must_match /|AMOUNT~12.34|/
+    url.must_match /|METHOD~PROCESSTRANX|/
+    url.must_match /|TRANXTYPE~SALE|/
+  end
 end
