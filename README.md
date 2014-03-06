@@ -71,6 +71,16 @@ transaction.response.each do |key, value|
 end
 ```
 
+### Customers
+
+```ruby
+# running a transaction for a customer
+transaction = Transaction.sale(
+    amount: "1.00",
+    customer_id: "my_customer_id")
+
+```
+
 ## Contributing
 
 1. Fork it

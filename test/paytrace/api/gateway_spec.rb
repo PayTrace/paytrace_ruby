@@ -23,4 +23,14 @@ describe PayTrace::API::Gateway do
     stubs.verify_stubbed_calls
     r.must_equal response
   end
+
+  it "initializes the connection based on the configuration" do
+    faraday_connection = mock
+    PayTrace.configure do |config|
+      config.connection = faraday_connection
+    end
+    gateway = PayTrace::API::Gateway.new
+    gateway.connection.must_equal faraday_connection
+  end
+
 end

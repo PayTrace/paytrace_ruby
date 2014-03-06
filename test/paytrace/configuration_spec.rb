@@ -18,4 +18,19 @@ describe PayTrace::Configuration do
     PayTrace.configuration.user_name.must_equal "demo"
     PayTrace.configuration.password.must_equal "demo"
   end
+
+  it "has reasonable defaults" do
+    c = PayTrace::Configuration.new
+    c.domain.must_equal "paytrace.com"
+    c.connection.must_be_instance_of Faraday::Connection
+    c.url.must_equal "https://paytrace.com/api/default.pay"
+    c.path.must_equal "api/default.pay"
+  end
+
+  it "allows you to configure what domain to point at" do
+    PayTrace.configure do |config|
+      config.domain = "sandbox.paytrace.com"
+    end
+    PayTrace.configuration.url.must_equal "https://sandbox.paytrace.com/api/default.pay"
+  end
 end

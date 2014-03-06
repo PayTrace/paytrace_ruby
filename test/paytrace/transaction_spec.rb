@@ -40,4 +40,5 @@ describe PayTrace::Transaction do
     t.response.must_equal @response
 
   end
+
 end

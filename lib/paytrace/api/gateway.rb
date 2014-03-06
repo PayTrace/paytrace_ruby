@@ -4,16 +4,15 @@ require 'paytrace/api/response'
 module PayTrace
   module API
     class Gateway
-      DOMAIN = "paytrace.com"
-      API_ROOT = "api/default.pay"
-      URL = "https://#{DOMAIN}/#{API_ROOT}"
+      attr_accessor :connection
 
-      def initialize(connection: Faraday.new)
-        @connection = connection
+      def initialize(connection: nil)
+        @connection = connection 
+        @connection ||= PayTrace.configuration.connection
       end
 
       def send_request(request)
-        res = @connection.post URL, parmlist: request.to_parms_string
+        res = @connection.post PayTrace.configuration.url, parmlist: request.to_parms_string
         PayTrace::API::Response.new(res.body)
       end
     end
