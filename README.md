@@ -1,6 +1,11 @@
-# PaytraceRuby
+# PayTrace Ruby SDK
 
 ![Build Status](https://www.codeship.io/projects/611ffe60-f3ee-0130-0299-1a84c3740ef1/status)
+
+*This SDK is actively under development but should still be considered in an alpha
+state. It does not provide all the access we are planning to our API at this time.
+Please feel free to experiment with it and we will be regularly pushing out new
+updates with increased functionality over the coming weeks*
 
 This gem integrates with the PayTrace API. It provides functionality to the
 publicly available functionality including:
@@ -14,7 +19,7 @@ publicly available functionality including:
 
 Add this line to your application's Gemfile:
 
-    gem 'paytrace_ruby'
+    gem 'paytrace'
 
 And then execute:
 
@@ -22,11 +27,49 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install paytrace_ruby
+    $ gem install paytrace
 
 ## Usage
 
-TODO: Write usage instructions here
+### Configuring your account
+
+You can set this up as a Rails initializer or during any other common configuration
+of your application.
+
+```ruby
+PayTrace.configure do |config|
+    config.user_name = "my_user_name"
+    config.password = "password"
+end
+```
+
+### Transactions
+
+Transactions can be processed utilizing class methods on the PayTrace::Transaction
+class.
+
+```ruby
+transaction = Transaction.sale(
+    amount: "1.00",
+    credit_card: {
+        card_number: "1111222233334444",
+        expiration_year: 14,
+        expiration_month: 3
+    })
+
+#
+## Response information is available on the transaction
+#
+puts transaction.response_code # 101. Your transaction was successfully approved.
+
+#
+## All values returned are accessible through the attached response property
+#
+transaction.response.each do |key, value|
+    puts key      # e.g. APPCODE
+    puts value    # TAS671
+end
+```
 
 ## Contributing
 
