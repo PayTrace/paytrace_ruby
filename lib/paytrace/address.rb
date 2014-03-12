@@ -1,6 +1,6 @@
 module PayTrace
   class Address
-    attr :street,:street2,:city,:state, :country, :postal_code
+    attr :name, :street,:street2,:city,:state, :country, :postal_code
 
     def initialize(options={})
       @name = options[:name]

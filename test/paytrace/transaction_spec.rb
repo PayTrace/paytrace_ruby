@@ -41,46 +41,68 @@ describe PayTrace::Transaction do
     end
   end
   describe "adding address info" do
-
-  it "can take a billing address" do
-    t = PayTrace::Transaction.new(
-        optional: {
-              billing_address: {
-              street: "1234 happy lane",
-              street2: "suit 234",
-              city:"Seattle",
-              state:"WA",
-              country:"USA",
-              postal_code:"98107"
+    it "can take a shipping address" do
+      t = PayTrace::Transaction.new(
+          optional: {
+              shipping_address: {
+                  name: "Bob Smith",
+                  street: "1234 happy lane",
+                  street2: "suit 234",
+                  city:"Seattle",
+                  state:"WA",
+                  country:"USA",
+                  postal_code:"98107"
               }
-          }
-      )
-      b = t.billing_address
-      b.street.must_equal "1234 happy lane"
-      b.street2.must_equal "suit 234"
-      b.city.must_equal "Seattle"
-      b.state.must_equal "WA"
-      b.country.must_equal "USA"
-      b.postal_code.must_equal "98107"
-  end
+          })
+      s = t.shipping_address
+      s.name.must_equal "Bob Smith"
+      s.street.must_equal "1234 happy lane"
+      s.street2.must_equal "suit 234"
+      s.city.must_equal "Seattle"
+      s.state.must_equal "WA"
+      s.country.must_equal "USA"
+      s.postal_code.must_equal "98107"
 
-  it "will return the same address if set to billing shipping same address" do
-    address = {
-      street: "1234 happy lane",
-      street2: "suit 234",
-      city:"Seattle",
-      state:"WA",
-      country:"USA",
-      postal_code:"98107"
-    }
+    end
+    it "can take a billing address" do
+      t = PayTrace::Transaction.new(
+          optional: {
+                billing_address: {
+                street: "1234 happy lane",
+                street2: "suit 234",
+                city:"Seattle",
+                state:"WA",
+                country:"USA",
+                postal_code:"98107"
+                }
+            }
+        )
+        b = t.billing_address
+        b.street.must_equal "1234 happy lane"
+        b.street2.must_equal "suit 234"
+        b.city.must_equal "Seattle"
+        b.state.must_equal "WA"
+        b.country.must_equal "USA"
+        b.postal_code.must_equal "98107"
+    end
 
-    t = PayTrace::Transaction.new(
-        optional: { billing_address: address
-        } )
-    t.set_shipping_same_as_billing
+    it "will return the same address if set to billing shipping same address" do
+      address = {
+        street: "1234 happy lane",
+        street2: "suit 234",
+        city:"Seattle",
+        state:"WA",
+        country:"USA",
+        postal_code:"98107"
+      }
 
-    t.shipping_address.must_equal t.billing_address
-  end
+      t = PayTrace::Transaction.new(
+          optional: { billing_address: address
+          } )
+      t.set_shipping_same_as_billing
+
+      t.shipping_address.must_equal t.billing_address
+    end
 
 
   end
