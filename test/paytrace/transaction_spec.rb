@@ -8,12 +8,13 @@ describe PayTrace::Transaction do
     end
     it "can charge sales to a credit card" do
       t = PayTrace::Transaction.sale(
-        amount: "1242.32",
-        credit_card: {
-          card_number: "1234123412341234",
-          expiration_month: 10,
-          expiration_year:  24
-      })
+          {amount: "1242.32",
+          credit_card: {
+            card_number: "1234123412341234",
+            expiration_month: 10,
+            expiration_year:  24
+          }
+        })
 
       #Transaction is properly configured
       t.amount.must_equal "1242.32"

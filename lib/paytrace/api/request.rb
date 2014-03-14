@@ -71,7 +71,6 @@ module PayTrace
       end
 
       def add_address(address_type, address)
-        puts address.name
         @params[:"#{address_type}_name"] = address.name if address.name
         @params[:"#{address_type}_address"] = address.street if address.street
         @params[:"#{address_type}_address2"] = address.street2 if address.street2
