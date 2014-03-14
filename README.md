@@ -82,7 +82,7 @@ transaction = Transaction.sale(
 ```
 ### Some Optional Fields
 ```ruby
-#adding Optional Fields
+#Adding Optional Fields
 
 transaction = Transaction.Sale(
     amount: "1.00",
@@ -95,7 +95,7 @@ transaction = Transaction.Sale(
       email:"me@example.com",
       description:"This is a test",
       tax_amount: ".50",
-      discretionary_data:"This is some data that is discretionary",                                        
+      discretionary_data:"This is some data that is discretionary"
     }
 )
 
@@ -121,7 +121,7 @@ transaction = Transaction.Sale(
               postal_code:"98107"
             },
       shipping_address: {
-        #Same as billing above
+        #Same as billing above.
       }
     }
 )
