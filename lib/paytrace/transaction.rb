@@ -14,13 +14,15 @@ module PayTrace
       t = Transaction.new(amount: amount, 
                       credit_card: cc, 
                       customer: customer,
-                      type: TransactionTypes::SALE)
+                      type: TransactionTypes::SALE,
+                      optional:options)
 
       request = PayTrace::API::Request.new(transaction: t)
       gateway = PayTrace::API::Gateway.new
       t.response = gateway.send_request(request)
       t
     end
+
   end
 
   class Transaction
@@ -28,7 +30,7 @@ module PayTrace
       include TransactionOperations
     end
 
-    attr_reader :amount, :credit_card, :type, :customer, :billing_address, :shipping_address
+    attr_reader :amount, :credit_card, :type, :customer, :billing_address, :shipping_address,:optional_fields
     attr_accessor :response
 
     def set_shipping_same_as_billing()
@@ -47,10 +49,21 @@ module PayTrace
 
     private
     def include_optional(optional)
+
       b = optional[:billing_address]
       @billing_address = PayTrace::Address.new(b) if b
       s = optional[:shipping_address]
       @shipping_address = PayTrace::Address.new(s) if s
+      if optional[:address_shipping_same_as_billing]
+        self.set_shipping_same_as_billing
+      end
+
+      #clear these out so we have a clean hash
+      optional[:billing_address] = nil
+      optional[:shipping_address] = nil
+
+      @optional_fields = optional
+
     end
 
 

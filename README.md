@@ -80,6 +80,55 @@ transaction = Transaction.sale(
     customer_id: "my_customer_id")
 
 ```
+### Some Optional Fields
+```ruby
+#adding Optional Fields
+
+transaction = Transaction.Sale(
+    amount: "1.00",
+    credit_card: {
+        card_number: "1111222233334444",
+        expiration_year: 14,
+        expiration_month: 3
+    },
+    optional: {
+      email:"me@example.com",
+      description:"This is a test",
+      tax_amount: ".50",
+      discretionary_data:"This is some data that is discretionary",                                        
+    }
+)
+
+```
+
+### Billing and Shipping Address
+```ruby
+transaction = Transaction.Sale(
+    amount: "1.00",
+    credit_card: {
+        card_number: "1111222233334444",
+        expiration_year: 14,
+        expiration_month: 3
+    },
+    optional: {
+       billing_address:{
+              name:"Jane Doe",
+              street:"1234 happy st.",
+              street2:"apt#2",
+              city:"Seattle",
+              state:"WA",
+              country: "US",
+              postal_code:"98107"
+            },
+      shipping_address: {
+        #Same as billing above
+      }
+    }
+)
+
+```
+
+
 
 ## Contributing
 

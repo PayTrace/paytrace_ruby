@@ -56,9 +56,82 @@ describe PayTrace::API::Request do
     url = r.to_parms_string
 
     #Make sure it puts in values we expect
-    url.must_match /|CUSTID~1234|/
-    url.must_match /|AMOUNT~12.34|/
-    url.must_match /|METHOD~PROCESSTRANX|/
-    url.must_match /|TRANXTYPE~SALE|/
+    url.must_match  /\|CUSTID~1234\|/
+    url.must_match /\|AMOUNT~12.34\|/
+    url.must_match /\|METHOD~PROCESSTRANX\|/
+    url.must_match /\|TRANXTYPE~SALE\|/
+  end
+
+  it "can include a billing address" do
+    t = PayTrace::Transaction.new(
+          optional:{
+            billing_address:{
+              name:"John Doe",
+              street:"1234 happy lane",
+              street2:"apt#2",
+              city:"Seattle",
+              state:"WA",
+              country: "US",
+              postal_code:"98107"
+            }
+          }
+    )
+    r = PayTrace::API::Request.new(transaction: t)
+
+    url = r.to_parms_string
+    puts url
+    #Make sure it puts in values we expect
+    url.must_match /\|BNAME~John Doe\|/
+    url.must_match /\|BADDRESS~1234 happy lane\|/
+    url.must_match /\|BADDRESS2~apt#2\|/
+    url.must_match /\|BCITY~Seattle\|/
+    url.must_match /\|BSTATE~WA\|/
+    url.must_match /\|BSTATE~WA\|/
+    url.must_match /\|BCOUNTRY~US\|/
+
+  end
+
+  it "can include misc fields as well" do
+    t = PayTrace::Transaction.new(
+        optional: {
+          email:"it@paytrace.com",
+          description:"This is a test",
+          tax_amount: "1.00",
+          return_clr: "Y",
+          enable_partial_authentication:"Y",
+          discretionary_data:"This is some data that is discretionary",
+          custom_dba:"NewName"
+        }
+    )
+
+    r = PayTrace::API::Request.new(transaction: t)
+
+    url = r.to_parms_string
+
+    url.must_match /\|DESCRIPTION~This is a test\|/
+    url.must_match /\|TAX~1.00\|/
+    url.must_match /\|EMAIL~it@paytrace.com\|/
+    url.must_match /\|RETURNCLR~Y\|/
+    url.must_match /\|ENABLEPARTIALAUTH~Y\|/
+    url.must_match /\|DISCRETIONARY DATA~This is some data that is discretionary\|/
+    url.must_match /\|CUSTOMDBA~NewName\|/
+  end
+
+  it "can do a swipe transaction" do
+    cc =  PayTrace::CreditCard.new( {
+            swipe: '%B4055010000000005^J/SCOTT^1212101001020001000000701000000?;4055010000000005=12121010010270100001?'
+          })
+        t = PayTrace::Transaction.new(
+        amount: '1.00',
+        credit_card:cc
+    )
+
+    r = PayTrace::API::Request.new(transaction: t)
+    url = r.to_parms_string
+
+    url.must_match /\|AMOUNT~1.00\|/
+    url.must_match /\|SWIPE~%B4055010000000005/
+
+
   end
 end
