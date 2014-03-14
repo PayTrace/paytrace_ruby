@@ -25,12 +25,12 @@ describe PayTrace::API::Request do
   end
 
   it "can add a transaction to its param list" do
-    t = PayTrace::Transaction.new(amount: "23.12", 
+    t = PayTrace::Transaction.new({amount: "23.12",
                                   credit_card: PayTrace::CreditCard.new({
                                     card_number: "1234123412341234",
                                     expiration_year: 24,
                                     expiration_month: 10 }),
-                                 type: PayTrace::TransactionTypes::SALE)
+                                 type: PayTrace::TransactionTypes::SALE})
     r = PayTrace::API::Request.new(transaction: t)
 
     r.params[:card_number].must_equal "1234123412341234"
@@ -45,9 +45,10 @@ describe PayTrace::API::Request do
   end
 
   it "can use a customer id for processing the transaction" do
-    t = PayTrace::Transaction.new(amount: "12.34",
-                                  customer: PayTrace::Customer.new(customer_id: "1234"),
-                                  type: PayTrace::TransactionTypes::SALE
+    t = PayTrace::Transaction.new({amount: "12.34",
+                                    customer: PayTrace::Customer.new(customer_id: "1234"),
+                                    type: PayTrace::TransactionTypes::SALE
+                                    }
                                  )
     r = PayTrace::API::Request.new(transaction: t)
     r.params[:customer_id].must_equal "1234"
@@ -79,7 +80,7 @@ describe PayTrace::API::Request do
     r = PayTrace::API::Request.new(transaction: t)
 
     url = r.to_parms_string
-    puts url
+
     #Make sure it puts in values we expect
     url.must_match /\|BNAME~John Doe\|/
     url.must_match /\|BADDRESS~1234 happy lane\|/

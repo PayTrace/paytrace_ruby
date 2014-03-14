@@ -28,8 +28,8 @@ describe PayTrace::Transaction do
 
     it "can run a transaction for a customer" do
       t = PayTrace::Transaction.sale(
-        amount: "1.00",
-        customer_id: "123456"
+          {amount: "1.00",
+           customer_id: "123456"}
       )
 
       t.amount.must_equal "1.00"
@@ -43,7 +43,7 @@ describe PayTrace::Transaction do
   describe "adding address info" do
     it "can take a shipping address" do
       t = PayTrace::Transaction.new(
-          optional: {
+              optional:{
               shipping_address: {
                   name: "Bob Smith",
                   street: "1234 happy lane",
@@ -52,8 +52,9 @@ describe PayTrace::Transaction do
                   state:"WA",
                   country:"USA",
                   postal_code:"98107"
+          }
               }
-          })
+        )
       s = t.shipping_address
       s.name.must_equal "Bob Smith"
       s.street.must_equal "1234 happy lane"
@@ -66,7 +67,7 @@ describe PayTrace::Transaction do
     end
     it "can take a billing address" do
       t = PayTrace::Transaction.new(
-          optional: {
+                optional: {
                 billing_address: {
                 street: "1234 happy lane",
                 street2: "suit 234",
@@ -74,7 +75,7 @@ describe PayTrace::Transaction do
                 state:"WA",
                 country:"USA",
                 postal_code:"98107"
-                }
+              }
             }
         )
         b = t.billing_address

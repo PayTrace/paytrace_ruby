@@ -3,19 +3,16 @@ require 'paytrace/api/gateway'
 require 'paytrace/address'
 module PayTrace
   module TransactionOperations
-    def sale(amount: nil, 
-             credit_card: nil, 
-             customer_id: nil,
-             options:{})
-
-      cc = CreditCard.new(credit_card) if credit_card
-      customer = Customer.new(customer_id: customer_id) if customer_id
+    def sale(params)
+      amount = params[:amount]
+      cc = CreditCard.new(params[:credit_card]) if params[:credit_card]
+      customer = Customer.new(customer_id: params[:customer_id]) if params[:customer_id]
 
       t = Transaction.new(amount: amount, 
                       credit_card: cc, 
                       customer: customer,
                       type: TransactionTypes::SALE,
-                      optional:options)
+                      optional:params)
 
       request = PayTrace::API::Request.new(transaction: t)
       gateway = PayTrace::API::Gateway.new

@@ -1,4 +1,4 @@
-Copyright (c) 2013 Trevor Redfern
+Copyright (c) 2013 Trevor Redfern Tony Hatch
 
 MIT License
 
