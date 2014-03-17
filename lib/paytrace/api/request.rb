@@ -51,6 +51,9 @@ module PayTrace
         @params[:enable_partial_authentication] = o[:enable_partial_authentication] if o[:enable_partial_authentication]
         @params[:discretionary_data] = o[:discretionary_data] if o[:discretionary_data]
         @params[:custom_dba] = o[:custom_dba] if o[:custom_dba]
+        @params[:invoice] = o[:invoice] if o[:invoice]
+        @params[:transaction_id] = o[:transaction_id] if o[:transaction_id]
+        @params[:customer_reference_id] = o[:customer_reference_id] if o[:customer_reference_id]
       end
 
       def load_address(t)

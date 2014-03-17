@@ -135,4 +135,18 @@ describe PayTrace::API::Request do
 
 
   end
+
+  it "can do a reference sales request " do
+
+    t = PayTrace::Transaction.new(
+        amount: '1.00',
+        optional:{transaction_id: '1234'}
+    )
+
+    r = PayTrace::API::Request.new(transaction: t)
+    url = r.to_parms_string
+
+    url.must_match /\|AMOUNT~1.00\|/
+    url.must_match /\|TRANXID~1234|/
+  end
 end
