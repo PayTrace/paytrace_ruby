@@ -15,7 +15,8 @@ module PayTrace
         enable_partial_authentication: "ENABLEPARTIALAUTH",
         discretionary_data: "DISCRETIONARY DATA",
         custom_dba: "CUSTOMDBA",
-
+        invoice:"INVOICE",
+        transaction_id:"TRANXID",
         #credit card
         card_number: "CC",
         expiration_year: "EXPYR",
@@ -42,8 +43,6 @@ module PayTrace
         #customer
         customer_id: "CUSTID",
         customer_reference_id:"CUSTREF",
-
-        invoice:"INVOICE",
       }
     end
   end
