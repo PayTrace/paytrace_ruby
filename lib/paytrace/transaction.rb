@@ -14,10 +14,45 @@ module PayTrace
                       type: TransactionTypes::SALE,
                       optional:params)
 
+      t.response = send_request(t)
+      t
+    end
+
+    def authorization(params)
+      amount = params[:amount]
+      cc = CreditCard.new(params[:credit_card]) if params[:credit_card]
+      customer = Customer.new(customer_id: params[:customer_id]) if params[:customer_id]
+
+      t = Transaction.new(amount: amount,
+                          credit_card: cc,
+                          customer: customer,
+                          type: TransactionTypes::Authorization,
+                          optional:params)
+
+      t.response = send_request(t)
+      t
+    end
+
+    def refund(params)
+      amount = params[:amount]
+      cc = CreditCard.new(params[:credit_card]) if params[:credit_card]
+      customer = Customer.new(customer_id: params[:customer_id]) if params[:customer_id]
+
+      t = Transaction.new(amount: amount,
+                          credit_card: cc,
+                          customer: customer,
+                          type: TransactionTypes::Refund,
+                          optional:params)
+
+      t.response = send_request(t)
+      t
+    end
+
+    private
+    def send_request(t)
       request = PayTrace::API::Request.new(transaction: t)
       gateway = PayTrace::API::Gateway.new
-      t.response = gateway.send_request(request)
-      t
+      gateway.send_request(request)
     end
 
   end
@@ -68,6 +103,8 @@ module PayTrace
 
   module TransactionTypes
     SALE = "SALE"
+    Authorization = "Authorization"
+    Refund = "Refund"
   end
 
 end
