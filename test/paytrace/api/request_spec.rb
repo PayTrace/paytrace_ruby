@@ -164,6 +164,7 @@ describe PayTrace::API::Request do
     url = r.to_parms_string
 
     url.must_match /\|APPROVAL~1234\|/
+    url.must_match  /\|TRANXTYPE~Force\|/
 
   end
 end

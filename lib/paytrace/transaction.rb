@@ -102,7 +102,7 @@ module PayTrace
     Authorization = "Authorization"
     Refund = "Refund"
     Void = "Void"
-    ForcedSale = "Forced"
+    ForcedSale = "Force"
   end
 
 end
