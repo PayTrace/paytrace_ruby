@@ -4,36 +4,32 @@ require 'paytrace/address'
 module PayTrace
   module TransactionOperations
     def sale(params)
-      amount = params[:amount]
-      cc = CreditCard.new(params[:credit_card]) if params[:credit_card]
-      customer = Customer.new(customer_id: params[:customer_id]) if params[:customer_id]
-
-      t = Transaction.new(amount: amount, 
-                      credit_card: cc, 
-                      customer: customer,
-                      type: TransactionTypes::SALE,
-                      optional:params)
-
-      t.response = send_request(t)
-      t
+      create_transaction(params,TransactionTypes::SALE)
     end
 
     def authorization(params)
-      amount = params[:amount]
-      cc = CreditCard.new(params[:credit_card]) if params[:credit_card]
-      customer = Customer.new(customer_id: params[:customer_id]) if params[:customer_id]
+      create_transaction(params,TransactionTypes::Authorization)
+    end
 
-      t = Transaction.new(amount: amount,
-                          credit_card: cc,
-                          customer: customer,
-                          type: TransactionTypes::Authorization,
+    def refund(params)
+      create_transaction(params,TransactionTypes::Refund)
+    end
+
+    def void(transaction_id)
+      params = {transaction_id: transaction_id}
+      t = Transaction.new(type: TransactionTypes::Void,
                           optional:params)
-
       t.response = send_request(t)
       t
     end
 
-    def refund(params)
+    def forced_sale(approval_code,params)
+      params[:approval_code] = approval_code
+      create_transaction(params,TransactionTypes::ForcedSale)
+    end
+
+    private
+    def create_transaction(params,type)
       amount = params[:amount]
       cc = CreditCard.new(params[:credit_card]) if params[:credit_card]
       customer = Customer.new(customer_id: params[:customer_id]) if params[:customer_id]
@@ -41,7 +37,7 @@ module PayTrace
       t = Transaction.new(amount: amount,
                           credit_card: cc,
                           customer: customer,
-                          type: TransactionTypes::Refund,
+                          type: type,
                           optional:params)
 
       t.response = send_request(t)
@@ -105,6 +101,8 @@ module PayTrace
     SALE = "SALE"
     Authorization = "Authorization"
     Refund = "Refund"
+    Void = "Void"
+    ForcedSale = "Forced"
   end
 
 end

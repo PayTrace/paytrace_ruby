@@ -54,6 +54,7 @@ module PayTrace
         @params[:invoice] = o[:invoice] if o[:invoice]
         @params[:transaction_id] = o[:transaction_id] if o[:transaction_id]
         @params[:customer_reference_id] = o[:customer_reference_id] if o[:customer_reference_id]
+        @params[:approval_code] = o[:approval_code] if o[:approval_code]
       end
 
       def load_address(t)

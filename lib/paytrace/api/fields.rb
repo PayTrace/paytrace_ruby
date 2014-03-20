@@ -43,6 +43,7 @@ module PayTrace
         #customer
         customer_id: "CUSTID",
         customer_reference_id:"CUSTREF",
+        approval_code:"APPROVAL"
       }
     end
   end

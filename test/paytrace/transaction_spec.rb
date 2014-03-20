@@ -127,7 +127,32 @@ describe PayTrace::Transaction do
       t.shipping_address.must_equal t.billing_address
     end
 
+  end
+  it "can be set to void a transaction" do
+    t = PayTrace::Transaction.new(optional:{transaction_id:"11"})
+  end
+
+  it "can create and send a void transaction" do
+    @response = mock()
+    PayTrace::API::Gateway.any_instance.expects(:send_request).returns(@response)
+
+    t = PayTrace::Transaction.void("111")
+    t.optional_fields[:transaction_id].must_equal "111"
+    t.type.must_equal PayTrace::TransactionTypes::Void
+  end
+
+  it "can create a forced sale" do
+    @response = mock()
+    PayTrace::API::Gateway.any_instance.expects(:send_request).returns(@response)
+    t = PayTrace::Transaction.forced_sale("111",{})
+
+    t.optional_fields[:approval_code].must_equal "111"
+    t.type.must_equal PayTrace::TransactionTypes::ForcedSale
+
+
+
 
   end
+
 
 end

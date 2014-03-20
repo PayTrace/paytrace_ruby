@@ -149,4 +149,21 @@ describe PayTrace::API::Request do
     url.must_match /\|AMOUNT~1.00\|/
     url.must_match /\|TRANXID~1234|/
   end
+
+
+  it "can create an approval code call" do
+    t = PayTrace::Transaction.new({amount: "23.12",
+                                   credit_card: PayTrace::CreditCard.new({
+                                                                             card_number: "1234123412341234",
+                                                                             expiration_year: 24,
+                                                                             expiration_month: 10 }),
+                                   type: PayTrace::TransactionTypes::ForcedSale,
+                                   optional:{approval_code:'1234'}
+                                  })
+    r = PayTrace::API::Request.new(transaction: t)
+    url = r.to_parms_string
+
+    url.must_match /\|APPROVAL~1234\|/
+
+  end
 end
