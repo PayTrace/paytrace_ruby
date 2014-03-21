@@ -28,6 +28,21 @@ module PayTrace
       create_transaction(params,TransactionTypes::ForcedSale)
     end
 
+    def capture(transaction_id)
+      params = {transaction_id: transaction_id}
+      t = Transaction.new(type: TransactionTypes::Capture,
+                          optional:params)
+      t.response = send_request(t)
+      t
+    end
+
+    def cash_advance(params)
+      optional = params[:optional]
+      optional[:cash_advance] = "Y"
+
+      create_transaction(params,TransactionTypes::Sale)
+    end
+
     private
     def create_transaction(params,type)
       amount = params[:amount]
@@ -87,8 +102,8 @@ module PayTrace
       end
 
       #clear these out so we have a clean hash
-      optional[:billing_address] = nil
-      optional[:shipping_address] = nil
+      optional.delete(:billing_address)
+      optional.delete(:shipping_address)
 
       @optional_fields = optional
 
@@ -103,6 +118,7 @@ module PayTrace
     Refund = "Refund"
     Void = "Void"
     ForcedSale = "Force"
+    Capture = "Capture"
   end
 
 end

@@ -31,7 +31,7 @@ module PayTrace
         @params[:method] = TRANSACTION_METHOD
         @params[:amount] = t.amount
         load_address(t)
-        load_optional_fields(t) if t.optional_fields
+        load_misc_fields(t) if t.optional_fields
       end
 
       def add_credit_card(cc)
@@ -42,19 +42,13 @@ module PayTrace
         @params[:csc] = cc.csc if cc.csc
       end
 
-      def load_optional_fields(t)
+      def load_misc_fields(t)
         o = t.optional_fields
-        @params[:email] = o[:email] if o[:email]
-        @params[:description] = o[:description] if o[:description]
-        @params[:tax_amount] = o[:tax_amount] if o[:tax_amount]
-        @params[:return_clr] = o[:return_clr] if o[:return_clr]
-        @params[:enable_partial_authentication] = o[:enable_partial_authentication] if o[:enable_partial_authentication]
-        @params[:discretionary_data] = o[:discretionary_data] if o[:discretionary_data]
-        @params[:custom_dba] = o[:custom_dba] if o[:custom_dba]
-        @params[:invoice] = o[:invoice] if o[:invoice]
-        @params[:transaction_id] = o[:transaction_id] if o[:transaction_id]
-        @params[:customer_reference_id] = o[:customer_reference_id] if o[:customer_reference_id]
-        @params[:approval_code] = o[:approval_code] if o[:approval_code]
+        o.each do |k,v|
+          @params[k]= v
+        end
+
+
       end
 
       def load_address(t)
@@ -83,7 +77,6 @@ module PayTrace
         @params[:"#{address_type}_state"] = address.state if address.state
         @params[:"#{address_type}_postal_code"] = address.postal_code if address.postal_code
         @params[:"#{address_type}_country"] = address.country if address.country
-
       end
 
 

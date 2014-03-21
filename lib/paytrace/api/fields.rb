@@ -43,7 +43,13 @@ module PayTrace
         #customer
         customer_id: "CUSTID",
         customer_reference_id:"CUSTREF",
-        approval_code:"APPROVAL"
+        approval_code:"APPROVAL",
+        #cash advance
+        cash_advance:"CASHADVANCE",
+        id_number:"PHOTOID",
+        id_experation:"IDEXP",
+        cc_last_4:"LAST4"
+
       }
     end
   end

@@ -77,6 +77,9 @@ describe PayTrace::API::Request do
             }
           }
     )
+
+    t.shipping_address.must_be_nil
+
     r = PayTrace::API::Request.new(transaction: t)
 
     url = r.to_parms_string
