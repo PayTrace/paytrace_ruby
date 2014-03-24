@@ -95,6 +95,8 @@ describe PayTrace::Transaction do
       t.response.must_equal @response
 
     end
+
+
   end
   describe "adding address info" do
     it "can take a shipping address" do

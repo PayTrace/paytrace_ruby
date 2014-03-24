@@ -97,10 +97,12 @@ module PayTrace
 
     private
     def include_optional(args)
+      s = nil
+      b = nil
 
-      b = args.delete(:billing_address)
+      b = args.delete(:billing_address)  if args[:billing_address]
       @billing_address = PayTrace::Address.new(b) if b
-      s =  args.delete(:shipping_address)
+      s =  args.delete(:shipping_address) if args[:shipping_address]
       @shipping_address = PayTrace::Address.new(s) if s
       if args[:address_shipping_same_as_billing]
         self.set_shipping_same_as_billing
