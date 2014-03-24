@@ -47,7 +47,7 @@ module PayTrace
         #cash advance
         cash_advance:"CASHADVANCE",
         id_number:"PHOTOID",
-        id_experation:"IDEXP",
+        id_expiration:"IDEXP",
         cc_last_4:"LAST4"
 
       }

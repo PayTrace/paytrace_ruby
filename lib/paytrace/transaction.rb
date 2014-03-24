@@ -3,16 +3,16 @@ require 'paytrace/api/gateway'
 require 'paytrace/address'
 module PayTrace
   module TransactionOperations
-    def sale(params)
-      create_transaction(params,TransactionTypes::SALE)
+    def sale(args)
+      create_transaction(args,TransactionTypes::SALE)
     end
 
-    def authorization(params)
-      create_transaction(params,TransactionTypes::Authorization)
+    def authorization(args)
+      create_transaction(args,TransactionTypes::Authorization)
     end
 
-    def refund(params)
-      create_transaction(params,TransactionTypes::Refund)
+    def refund(args)
+      create_transaction(args,TransactionTypes::Refund)
     end
 
     def void(transaction_id)
@@ -23,9 +23,9 @@ module PayTrace
       t
     end
 
-    def forced_sale(approval_code,params)
-      params[:approval_code] = approval_code
-      create_transaction(params,TransactionTypes::ForcedSale)
+    def forced_sale(approval_code,args)
+      args[:approval_code] = approval_code
+      create_transaction(args,TransactionTypes::ForcedSale)
     end
 
     def capture(transaction_id)
@@ -36,24 +36,29 @@ module PayTrace
       t
     end
 
-    def cash_advance(params)
-      optional = params[:optional]
-      optional[:cash_advance] = "Y"
+    def cash_advance(args)
+      args[:cash_advance] = "Y"
 
-      create_transaction(params,TransactionTypes::Sale)
+      create_transaction(args,TransactionTypes::SALE)
+    end
+
+    def store_forward(amount,credit_card,optional={})
+      optional[:amount] = amount
+      optional[:credit_card] = credit_card
+      create_transaction(optional,TransactionTypes::StoreForward)
     end
 
     private
-    def create_transaction(params,type)
-      amount = params[:amount]
-      cc = CreditCard.new(params[:credit_card]) if params[:credit_card]
-      customer = Customer.new(customer_id: params[:customer_id]) if params[:customer_id]
+    def create_transaction(args,type)
+      amount = args.delete(:amount)  if args[:amount]
+      cc = CreditCard.new(args.delete(:credit_card)) if args[:credit_card]
+      customer = Customer.new(customer_id: args.delete(:customer_id)) if args[:customer_id]
 
       t = Transaction.new(amount: amount,
                           credit_card: cc,
                           customer: customer,
                           type: type,
-                          optional:params)
+                          optional:args)
 
       t.response = send_request(t)
       t
@@ -91,21 +96,17 @@ module PayTrace
     end
 
     private
-    def include_optional(optional)
+    def include_optional(args)
 
-      b = optional[:billing_address]
+      b = args.delete(:billing_address)
       @billing_address = PayTrace::Address.new(b) if b
-      s = optional[:shipping_address]
+      s =  args.delete(:shipping_address)
       @shipping_address = PayTrace::Address.new(s) if s
-      if optional[:address_shipping_same_as_billing]
+      if args[:address_shipping_same_as_billing]
         self.set_shipping_same_as_billing
       end
 
-      #clear these out so we have a clean hash
-      optional.delete(:billing_address)
-      optional.delete(:shipping_address)
-
-      @optional_fields = optional
+      @optional_fields = args
 
     end
 
@@ -119,6 +120,7 @@ module PayTrace
     Void = "Void"
     ForcedSale = "Force"
     Capture = "Capture"
+    StoreForward ="Str/FWD"
   end
 
 end

@@ -27,6 +27,7 @@ describe PayTrace::Transaction do
       t.credit_card.expiration_month.must_equal 10
       t.credit_card.expiration_year.must_equal 24
     end
+
     it "can charge sales to a credit card" do
       t = PayTrace::Transaction.sale(
           {amount: "1242.32",
@@ -58,6 +59,39 @@ describe PayTrace::Transaction do
       t.type.must_equal PayTrace::TransactionTypes::SALE
       t.customer.customer_id.must_equal "123456"
       t.credit_card.must_be_nil
+      t.response.must_equal @response
+
+    end
+
+    it "can run a cash advance" do
+
+      args = {
+        amount:"1.00",
+        cc_last_4:"1234",
+        id_number:"12345",
+        id_expiration:"12/29/2020",
+        billing_address: {
+          street: "1234 happy lane",
+          street2: "apt #1",
+          city: "Seattle",
+          state: "WA",
+          postal_code:"98107",
+          country:"US"
+        },
+        credit_card: {
+            swipe:'%B5454545454545454^J/SCOTT^2612101001020001000000701000000?;5454545454545454=26121010010270100001?'
+        }
+      }
+      t = PayTrace::Transaction.cash_advance(args)
+
+      t.amount.must_equal "1.00"
+      t.type.must_equal PayTrace::TransactionTypes::SALE
+      t.credit_card.swipe.must_equal '%B5454545454545454^J/SCOTT^2612101001020001000000701000000?;5454545454545454=26121010010270100001?'
+      t.optional_fields[:cc_last_4].must_equal "1234"
+      t.optional_fields[:id_expiration].must_equal "12/29/2020"
+      t.optional_fields[:id_number].must_equal "12345"
+
+      t.billing_address.street.must_equal "1234 happy lane"
       t.response.must_equal @response
 
     end
@@ -128,6 +162,7 @@ describe PayTrace::Transaction do
     end
 
   end
+
   it "can be set to void a transaction" do
     t = PayTrace::Transaction.new(optional:{transaction_id:"11"})
   end

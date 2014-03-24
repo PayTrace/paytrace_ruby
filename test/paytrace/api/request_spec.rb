@@ -153,7 +153,6 @@ describe PayTrace::API::Request do
     url.must_match /\|TRANXID~1234|/
   end
 
-
   it "can create an approval code call" do
     t = PayTrace::Transaction.new({amount: "23.12",
                                    credit_card: PayTrace::CreditCard.new({
@@ -170,4 +169,49 @@ describe PayTrace::API::Request do
     url.must_match  /\|TRANXTYPE~Force\|/
 
   end
+
+  it "can create a new cash_advance sale" do
+    cc =  PayTrace::CreditCard.new( {
+                                        swipe: '%B4055010000000005^J/SCOTT^1212101001020001000000701000000?;4055010000000005=12121010010270100001?'
+                                    })
+
+    optional = {
+        billing_address:{
+            name:"John Doe",
+            street:"1234 happy lane",
+            street2:"apt#2",
+            city:"Seattle",
+            state:"WA",
+            country: "US",
+            postal_code:"98107"
+        },
+        id_number:  "1234",
+        id_expiration:"12/20/2020",
+        cc_last_4: "1234",
+        cash_advance: "Y"
+
+
+    }
+    t = PayTrace::Transaction.new(
+        amount: '1.00',
+        credit_card:cc,
+        type: PayTrace::TransactionTypes::SALE,
+        optional:optional
+    )
+
+    r = PayTrace::API::Request.new(transaction: t)
+    url = r.to_parms_string
+
+    url.must_match /\|AMOUNT~1.00\|/
+    url.must_match /\|SWIPE~%B4055010000000005/
+    url.must_match /\|CASHADVANCE~Y\|/
+    url.must_match /\|PHOTOID~1234\|/
+    url.must_match /\|LAST4~1234\|/
+    url.must_match /\|BADDRESS~1234 happy lane\|/
+
+
+
+
+  end
+
 end
