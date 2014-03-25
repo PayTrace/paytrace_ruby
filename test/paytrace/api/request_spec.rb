@@ -27,7 +27,6 @@ describe PayTrace::API::Request do
   it "can manually set params" do
     r = PayTrace::API::Request.new
     r.set_param(:foo, "bar")
-
     r.params[:foo].must_equal "bar"
   end
 end
