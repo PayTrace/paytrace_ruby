@@ -17,6 +17,7 @@ module PayTrace
         custom_dba: "CUSTOMDBA",
         invoice:"INVOICE",
         transaction_id:"TRANXID",
+        check_id:"CHECKID",
         #credit card
         card_number: "CC",
         expiration_year: "EXPYR",
