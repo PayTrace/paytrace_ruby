@@ -4,7 +4,7 @@ module PayTrace
       TRANSACTION_METHOD = "PROCESSTRANX"
       attr_reader :params, :field_delim, :value_delim
 
-      def initialize(transaction: nil)
+      def initialize
         @field_delim = "|"
         @value_delim = "~"
 
@@ -14,7 +14,6 @@ module PayTrace
           terms: "Y"
         }
 
-        add_transaction(transaction) if transaction
       end
 
       def to_parms_string()
