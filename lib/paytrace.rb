@@ -8,6 +8,7 @@ require 'paytrace/api/fields'
 require 'paytrace/api/gateway'
 require 'paytrace/api/request'
 require 'paytrace/api/response'
+require 'paytrace/exceptions'
 
 module PayTrace
 end
