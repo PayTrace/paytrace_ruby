@@ -9,11 +9,13 @@ def mock_send(response = nil)
   # gateway and response can be full mocks, unless we want to pass in a response...
   gateway = mock()
   response ||= mock()
+  response.expects(:has_errors?).returns(false)
+  response.expects(:values).returns({"CUSTOMERID" => "12345"})
   PayTrace::API::Gateway.expects(:new).returns(gateway)
   gateway.expects(:send_request).with(request).returns(response)
 
   # finally, the static methods call the private #initialize (:new) with the mock response
-  PayTrace::Customer.expects(:new).with(response)
+  PayTrace::Customer.expects(:new).with("12345")
 
   return request, response
 end

@@ -37,7 +37,7 @@ module PayTrace
       add_extra_customer_info(request, extra_customer_info) if extra_customer_info
       gateway = PayTrace::API::Gateway.new
       response = gateway.send_request(request)
-      new(response)
+      new(get_customer_id_from_response(response))
     end
 
     def self.add_extra_customer_info(request, info = {})
@@ -58,7 +58,15 @@ module PayTrace
       request   
     end
 
-    private_class_method :add_extra_customer_info, :get_request, :build_customer
+    def self.get_customer_id_from_response(response)
+      if response.has_errors?
+        raise response.get_error_response()
+      else
+        return response.values["CUSTOMERID"]
+      end
+    end
+
+    private_class_method :add_extra_customer_info, :get_request, :build_customer, :get_customer_id_from_response
   end
 end
 
