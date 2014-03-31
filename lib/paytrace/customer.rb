@@ -1,12 +1,10 @@
 module PayTrace
   class Customer
-    # force the user to use static methods to instantiate this class
-    private_class_method :new
-
     attr :id
     TRANSACTION_METHOD = "CreateCustomer"
 
-    def initialize(api_response)
+    def initialize(id)
+      @id = id
     end
 
     def self.from_cc_info(customer_id, credit_card, billing_address, shipping_address = nil, extra_customer_info = nil)
