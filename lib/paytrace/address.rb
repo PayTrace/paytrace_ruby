@@ -1,6 +1,6 @@
 module PayTrace
   class Address
-    attr :name, :street,:street2,:city,:state, :country,:region,:postal_code,:address_type
+    attr_accessor :name, :street,:street2,:city,:state, :country,:region,:postal_code,:address_type
 
     def initialize(options={})
       @name = options[:name]
@@ -8,10 +8,10 @@ module PayTrace
       @street2 = options[:street2]
       @city = options[:city]
       @state = options[:state]
-      @region = options[:region]
       @country = options[:country]
       @postal_code = options[:postal_code ]
       @address_type = options[:address_type] || :billing
+      @region = options[:region] if @address_type == :shipping # special case for shipping addresses
     end
 
     def set_request(request)
