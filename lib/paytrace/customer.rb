@@ -1,10 +1,11 @@
 module PayTrace
   class Customer
-    attr :id
+    attr :id, :customer_id
     TRANSACTION_METHOD = "CreateCustomer"
 
-    def initialize(id)
+    def initialize(id, customer_id = nil)
       @id = id
+      @cutomer_id = customer_id
     end
 
     def self.from_cc_info(customer_id, credit_card, billing_address, shipping_address = nil, extra_customer_info = nil)
@@ -37,7 +38,7 @@ module PayTrace
       add_extra_customer_info(request, extra_customer_info) if extra_customer_info
       gateway = PayTrace::API::Gateway.new
       response = gateway.send_request(request)
-      new(get_customer_id_from_response(response))
+      new(*get_customer_id_from_response(response))
     end
 
     def self.add_extra_customer_info(request, info = {})
@@ -59,11 +60,10 @@ module PayTrace
     end
 
     def self.get_customer_id_from_response(response)
-      if response.has_errors?
-        raise response.get_error_response()
-      else
-        return response.values["CUSTOMERID"]
-      end
+      values = response.values
+      customerid = values["CUSTOMERID"]
+      custid = values["CUSTID"]
+      return customerid, custid
     end
 
     private_class_method :add_extra_customer_info, :get_request, :build_customer, :get_customer_id_from_response
