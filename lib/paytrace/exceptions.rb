@@ -5,5 +5,8 @@ module PayTrace
 
     class ValidationError < Base
     end
+
+    class ErrorResponse < Base
+    end
   end
 end

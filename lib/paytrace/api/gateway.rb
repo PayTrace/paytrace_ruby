@@ -1,5 +1,6 @@
 require 'faraday'
 require 'paytrace/api/response'
+require 'paytrace/exceptions'
 
 module PayTrace
   module API
@@ -9,12 +10,13 @@ module PayTrace
       @@last_request = nil
       @@last_response = nil
       @@next_response = nil
+      @@raise_exceptions = true
 
       def initialize(connection: nil)
         @connection = connection || PayTrace.configuration.connection
       end
 
-      def self.set_debug(enable = true)
+      def self.debug=(enable)
         @@debug = enable
       end 
 
@@ -30,19 +32,28 @@ module PayTrace
         @@next_response = next_response
       end
 
+      def self.raise_exceptions=(raise_exceptions)
+        @@raise_exceptions = raise_exceptions
+      end
+
       def send_request(request)
         @@last_request = request if @@debug
         unless (@@debug && @@next_response)
           res = @connection.post PayTrace.configuration.url, parmlist: request.to_parms_string
-          response = PayTrace::API::Response.new(res.body)
+          raw_response = res.body
         else
-          response = @@next_response
+          raw_response = @@next_response
         end
         
-        @@last_response = response if @@debug
+        @@last_response = raw_response
+        response = PayTrace::API::Response.new(raw_response)
         @@next_response = nil # just to be sure
 
-        response
+        if @@raise_exceptions && response.has_errors?
+          raise PayTrace::Exceptions::ErrorResponse.new(response.get_response())
+        else
+          response
+        end
       end
     end
   end
