@@ -44,13 +44,18 @@ module PayTrace
         #customer
         customer_id: "CUSTID",
         customer_reference_id:"CUSTREF",
+        customer_password:"CUSTPSWD",
+        customer_fax:"FAX",
+        customer_phone:"PHONE",
         approval_code:"APPROVAL",
         #cash advance
         cash_advance:"CASHADVANCE",
         id_number:"PHOTOID",
         id_expiration:"IDEXP",
-        cc_last_4:"LAST4"
-
+        cc_last_4:"LAST4",
+        #bank accounts
+        account_number:"DDA",
+        routing_number:"TR"
       }
     end
   end

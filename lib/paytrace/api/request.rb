@@ -18,7 +18,8 @@ module PayTrace
 
       def to_parms_string()
         @params.map do |k,v|
-          "#{PayTrace::API.fields.fetch(k)}#{@value_delim}#{v}"
+          raise "Unknown field '#{k}'" unless PayTrace::API.fields.has_key?(k)
+          "#{PayTrace::API.fields[k]}#{@value_delim}#{v}"
         end.join(@field_delim) << "|"
       end
 
