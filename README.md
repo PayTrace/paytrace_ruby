@@ -77,7 +77,7 @@ end
 
 ```ruby
 # running a transaction for a customer
-transaction = Transaction.sale({amount: "1.00",customer_id: "my_customer_id"})
+transaction = Transaction.sale({amount: "1.00",customer: my_customer_id})
 
 ```
 ### Some Optional Fields

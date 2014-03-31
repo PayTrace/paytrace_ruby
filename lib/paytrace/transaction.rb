@@ -52,7 +52,7 @@ module PayTrace
     def create_transaction(args,type)
       amount = args.delete(:amount)  if args[:amount]
       cc = CreditCard.new(args.delete(:credit_card)) if args[:credit_card]
-      customer = Customer.new(customer_id: args.delete(:customer_id)) if args[:customer_id]
+      customer = args.delete(:customer) if args[:customer]
 
       t = Transaction.new(amount: amount,
                           credit_card: cc,
@@ -102,7 +102,11 @@ module PayTrace
 
     def set_request(request)
       add_credit_card(request, credit_card) if credit_card
-      add_customer(request, customer) if customer
+      if customer.is_a?(PayTrace::Customer)
+        request.set_param(:customer_id, customer.id)
+      elsif customer.is_a?(Fixnum)
+        request.set_param(:customer_id, customer)
+      end
       add_transaction_info(request)
       add_addresses(request)
       add_optional_fields(request) if optional_fields
@@ -135,10 +139,6 @@ module PayTrace
     def add_addresses(request)
       shipping_address.set_request(request) if shipping_address
       billing_address.set_request(request) if billing_address
-    end
-
-    def add_customer(request, c)
-      request.set_param(:customer_id, c.customer_id)
     end
 
     def include_optional(args)

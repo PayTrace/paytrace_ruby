@@ -52,12 +52,12 @@ describe PayTrace::Transaction do
     it "can run a transaction for a customer" do
       t = PayTrace::Transaction.sale(
           {amount: "1.00",
-           customer_id: "123456"}
+           customer: 123456}
       )
 
       t.amount.must_equal "1.00"
       t.type.must_equal PayTrace::TransactionTypes::SALE
-      t.customer.customer_id.must_equal "123456"
+      t.customer.must_equal 123456
       t.credit_card.must_be_nil
       t.response.must_equal @response
 
@@ -215,14 +215,14 @@ describe PayTrace::Transaction do
 
   it "can use a customer id for processing the transaction" do
     t = PayTrace::Transaction.new({amount: "12.34",
-                                    customer: PayTrace::Customer.new(customer_id: "1234"),
+                                    customer: 1234,
                                     type: PayTrace::TransactionTypes::SALE
                                     }
                                  )
     r = PayTrace::API::Request.new
     t.set_request(r)
 
-    r.params[:customer_id].must_equal "1234"
+    r.params[:customer_id].must_equal 1234
     r.params[:amount].must_equal "12.34"
 
     url = r.to_parms_string
