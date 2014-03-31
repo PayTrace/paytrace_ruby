@@ -26,7 +26,13 @@ describe PayTrace::API::Request do
 
   it "can manually set params" do
     r = PayTrace::API::Request.new
-    r.set_param(:foo, "bar")
-    r.params[:foo].must_equal "bar"
+    r.set_param(:billing_name, "Fred Jones")
+    r.params[:billing_name].must_equal "Fred Jones"
+  end
+
+  it "raises a validation exception for unknown fields" do
+    r = PayTrace::API::Request.new
+
+    -> { r.set_param(:foo, "bar") }.must_raise PayTrace::Exceptions::ValidationError
   end
 end

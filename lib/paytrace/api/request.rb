@@ -18,12 +18,13 @@ module PayTrace
 
       def to_parms_string()
         @params.map do |k,v|
-          raise "Unknown field '#{k}'" unless PayTrace::API.fields.has_key?(k)
           "#{PayTrace::API.fields[k]}#{@value_delim}#{v}"
         end.join(@field_delim) << "|"
       end
 
       def set_param(k, v)
+        raise PayTrace::Exceptions::ValidationError.new("Unknown field '#{k}'") unless PayTrace::API.fields.has_key?(k)
+
         @params[k] = v
       end
 
