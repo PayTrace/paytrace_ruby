@@ -3,18 +3,21 @@ module PayTrace
     attr :id, :customer_id
     CREATE_CUSTOMER = "CreateCustomer"
     UPDATE_CUSTOMER = "UpdateCustomer"
+    def initialize(customer_id = nil)
+      @customer_id = customer_id
+    end
 
     def update(params = {})
       set_request_data(UPDATE_CUSTOMER, params)
     end
 
     def self.from_cc_info(params = {})
-      customer = Customer.new
+      customer = Customer.new(params[:customer_id])
       customer.set_request_data(CREATE_CUSTOMER, params)
     end
 
     def self.from_transaction_id(params = {})
-      customer = Customer.new
+      customer = Customer.new(params[:customer_id])
       customer.set_request_data(CREATE_CUSTOMER, params)
     end
 
