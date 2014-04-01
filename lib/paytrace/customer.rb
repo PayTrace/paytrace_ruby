@@ -1,72 +1,60 @@
 module PayTrace
   class Customer
     attr :id, :customer_id
-    TRANSACTION_METHOD = "CreateCustomer"
+    CREATE_CUSTOMER = "CreateCustomer"
+    UPDATE_CUSTOMER = "UpdateCustomer"
 
-    def initialize(id, customer_id = nil)
-      @id = id
-      @cutomer_id = customer_id
+    def update(params = {})
+      set_request_data(UPDATE_CUSTOMER, params)
     end
 
-    def self.from_cc_info(customer_id, credit_card, billing_address, shipping_address = nil, extra_customer_info = nil)
-      request = get_request(customer_id)
-      billing_address.set_request(request)
-      request.set_param(:card_number, credit_card.card_number)
-      request.set_param(:expiration_month, credit_card.expiration_month)
-      request.set_param(:expiration_year, credit_card.expiration_year)
-      
-      build_customer(request, shipping_address, extra_customer_info)
+    def self.from_cc_info(params = {})
+      customer = Customer.new
+      customer.set_request_data(CREATE_CUSTOMER, params)
     end
 
-    def self.from_transaction_id(customer_id, transaction_id, billing_address = nil, shipping_address = nil, extra_customer_info = nil)
-      request = get_request(customer_id)
-      request.set_param(:transaction_id, transaction_id)
+    def self.from_transaction_id(params = {})
+      customer = Customer.new
+      customer.set_request_data(CREATE_CUSTOMER, params)
+    end
 
-      # special case: we don't include BNAME for this call path
-      if billing_address
-        previous = billing_address.name
-        billing_address.name = nil
-        billing_address.set_request(request)
-        billing_address.name = previous
+    def set_request_data(method, params)
+      request = PayTrace::API::Request.new
+      request.set_param(:method, method)
+      request.set_param(:customer_id, params[:customer_id])
+      request.set_param(:new_customer_id, params[:new_customer_id])
+      request.set_param(:transaction_id, params[:transaction_id])
+
+      if params[:billing_address]
+        params[:billing_address].name = nil if (method == CREATE_CUSTOMER && params[:transaction_id])
+        params[:billing_address].set_request(request)
+      end
+      params[:shipping_address].set_request(request) if params[:shipping_address]
+        
+
+      if params[:credit_card]
+        request.set_param(:card_number, params[:credit_card].card_number)
+        request.set_param(:expiration_month, params[:credit_card].expiration_month)
+        request.set_param(:expiration_year, params[:credit_card].expiration_year)
       end
 
-      build_customer(request, shipping_address, extra_customer_info)
-    end
+      request.set_param(:email, params[:email])
+      request.set_param(:customer_phone, params[:phone]) 
+      request.set_param(:customer_fax, params[:fax]) 
+      request.set_param(:customer_password, params[:customer_password])
+      request.set_param(:account_number, params[:account_number])
+      request.set_param(:routing_number, params[:routing_number])
+      request.set_param(:discretionary_data, params[:discretionary_data])
 
-    def self.build_customer(request, shipping_address, extra_customer_info)
-      shipping_address.set_request(request) if shipping_address
-      add_extra_customer_info(request, extra_customer_info) if extra_customer_info
       gateway = PayTrace::API::Gateway.new
       response = gateway.send_request(request)
-      new(*get_customer_id_from_response(response))
+      unless response.has_errors?
+        values = response.values
+        @id = values["CUSTID"]
+        @customer_id = values["CUSTOMERID"]
+        self
+      end
     end
-
-    def self.add_extra_customer_info(request, info = {})
-      request.set_param(:email, info[:email]) if info[:email]
-      request.set_param(:customer_phone, info[:phone]) if info[:phone]
-      request.set_param(:customer_fax, info[:fax]) if info[:fax]
-      request.set_param(:customer_password, info[:customer_password]) if info[:customer_password]
-      request.set_param(:account_number, info[:account_number]) if info[:account_number]
-      request.set_param(:routing_number, info[:routing_number]) if info[:routing_number]
-      request.set_param(:discretionary_data, info[:discretionary_data]) if info[:discretionary_data]
-    end
-
-    def self.get_request(customer_id)
-      request = PayTrace::API::Request.new
-      request.set_param(:method, TRANSACTION_METHOD)
-      request.set_param(:customer_id, customer_id) 
-
-      request   
-    end
-
-    def self.get_customer_id_from_response(response)
-      values = response.values
-      customerid = values["CUSTOMERID"]
-      custid = values["CUSTID"]
-      return customerid, custid
-    end
-
-    private_class_method :add_extra_customer_info, :get_request, :build_customer, :get_customer_id_from_response
   end
 end
 

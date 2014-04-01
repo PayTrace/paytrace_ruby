@@ -43,6 +43,7 @@ module PayTrace
         shipping_country: "SCOUNTRY",
         #customer
         customer_id: "CUSTID",
+        new_customer_id: "NEWCUSTID",
         customer_reference_id:"CUSTREF",
         customer_password:"CUSTPSWD",
         customer_fax:"FAX",
