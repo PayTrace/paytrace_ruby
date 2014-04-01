@@ -25,9 +25,8 @@ module PayTrace
       def set_param(k, v)
         raise PayTrace::Exceptions::ValidationError.new("Unknown field '#{k}'") unless PayTrace::API.fields.has_key?(k)
 
-        @params[k] = v
+        @params[k] = v unless v.nil?
       end
-
     end
   end
 end
