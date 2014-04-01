@@ -37,7 +37,7 @@ module PayTrace
       end
 
       def send_request(request)
-        @@last_request = request if @@debug
+        @@last_request = request.to_parms_string if @@debug
         unless (@@debug && @@next_response)
           res = @connection.post PayTrace.configuration.url, parmlist: request.to_parms_string
           raw_response = res.body
