@@ -10,7 +10,7 @@ describe PayTrace::Customer do
     PayTrace::API::Gateway.next_response = "RESPONSE~ok|CUSTOMERID~12345|CUSTID~john_doe"
   end
 
-  describe "create customer" do
+  describe "create customer profile" do
     # first call path: create from credit card information
     it "can be created from credit card information" do
       credit_card = PayTrace::CreditCard.new({card_number: "1234123412341234", expiration_month: 12, expiration_year: 2014})
@@ -105,7 +105,7 @@ describe PayTrace::Customer do
     end
   end
 
-  describe "update customer" do
+  describe "update customer profile" do
     it "accepts a billing address" do
       billing_addr = PayTrace::Address.new({
         name: "Foo Bar",
@@ -166,6 +166,21 @@ describe PayTrace::Customer do
       PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~UpdateCustomer|NEWCUSTID~foo_bar|" +
       "EMAIL~support@paytrace.com|PHONE~123-555-1212|FAX~456-555-1212|CUSTPSWD~none_shall_pass|DDA~123456789|" +
       "TR~12345678|DISCRETIONARY DATA~discretionary_data|"
+    end
+  end
+
+  describe "delete customer profile" do
+    it "works with an instantiated Customer object" do
+      c = PayTrace::Customer.new("foo_bar")
+       c.delete
+
+        PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~DeleteCustomer|CUSTID~foo_bar|"
+    end
+
+    it "works with a static class method" do
+      PayTrace::Customer.delete("foob_barb")
+
+      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~DeleteCustomer|CUSTID~foob_barb|"
     end
   end
 end

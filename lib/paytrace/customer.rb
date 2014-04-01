@@ -1,14 +1,29 @@
 module PayTrace
   class Customer
     attr :id, :customer_id
+
     CREATE_CUSTOMER = "CreateCustomer"
     UPDATE_CUSTOMER = "UpdateCustomer"
+    DELETE_CUSTOMER = "DeleteCustomer"
+
     def initialize(customer_id = nil)
       @customer_id = customer_id
     end
 
     def update(params = {})
       set_request_data(UPDATE_CUSTOMER, params)
+    end
+
+    def delete
+      request = PayTrace::API::Request.new
+      request.set_param(:method, DELETE_CUSTOMER)
+      request.set_param(:customer_id, @customer_id)
+      gateway = PayTrace::API::Gateway.new
+      gateway.send_request(request)
+    end
+
+    def self.delete(customer_id)
+      Customer.new(customer_id).delete
     end
 
     def self.from_cc_info(params = {})
