@@ -9,6 +9,7 @@ module PayTrace
       @@debug = false
       @@last_request = nil
       @@last_response = nil
+      @@last_response_object = nil
       @@next_response = nil
       @@raise_exceptions = true
 
@@ -26,6 +27,10 @@ module PayTrace
 
       def self.last_response
         @@last_response
+      end
+
+      def self.last_response_object
+        @@last_response_object
       end
 
       def self.next_response=(next_response)
@@ -47,6 +52,8 @@ module PayTrace
         
         @@last_response = raw_response
         response = PayTrace::API::Response.new(raw_response)
+        @@last_response_object = response
+
         @@next_response = nil # just to be sure
 
         if @@raise_exceptions && response.has_errors?

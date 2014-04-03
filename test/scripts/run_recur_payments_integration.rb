@@ -49,8 +49,8 @@ extra = {
   fax: "206-555-1313",
   password: "foxtrot123",
   account_number: 123456789,
-  routing_number: 12345678,
-  discretionary_data: "Discretionary data."
+  routing_number: 325081403,
+  discretionary_data: {test: "test data"}
 }
 
 PayTrace::API::Gateway.debug = true
@@ -64,9 +64,15 @@ rescue PayTrace::Exceptions::ErrorResponse
 end
 
 log "Creating customer john_doe..."
-c = PayTrace::Customer.from_cc_info({customer_id: "john_doe", credit_card: cc, billing_address: ba}.merge(extra))
+begin
+  c = PayTrace::Customer.from_cc_info({customer_id: "john_doe", credit_card: cc, billing_address: ba}.merge(extra))
+  dump_response_values(PayTrace::API::Gateway.last_response_object)
+rescue
+  log "Failure; raw request: #{PayTrace::API::Gateway.last_request}"
+  raise
+end
 log "Customer ID: #{c.id}"
-dump_response_values(PayTrace::API::Gateway.last_response)
+dump_response_values(PayTrace::API::Gateway.last_response_object)
 
 log "Creating recurrence for john_doe..."
 params = {
@@ -81,10 +87,13 @@ params = {
   recur_type: "A"
 }
 recur_id = PayTrace::RecurringTransaction.create(params)
+dump_response_values(PayTrace::API::Gateway.last_response_object)
 puts ">>>>>>> Recurrence ID: #{recur_id}"
 
 log "Deleting recurrence #{recur_id}..."
 PayTrace::RecurringTransaction.delete({recur_id: recur_id})
+dump_response_values(PayTrace::API::Gateway.last_response_object)
 
 log "Deleting customer 'john_doe'..."
 c.delete()
+dump_response_values(PayTrace::API::Gateway.last_response_object)
