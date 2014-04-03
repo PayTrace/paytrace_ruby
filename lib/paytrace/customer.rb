@@ -71,6 +71,8 @@ module PayTrace
         @id = values["CUSTID"]
         @customer_id = values["CUSTOMERID"]
         self
+      else
+        nil
       end
     end
   end
