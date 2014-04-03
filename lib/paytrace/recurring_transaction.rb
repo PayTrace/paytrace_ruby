@@ -11,7 +11,7 @@ module PayTrace
     EXPORT_SCHEDULED_METHOD = "ExportRecur"
 
     def initialize(raw_response)
-      response_map = raw_response.split('+').map {|pair| pair.split('=')}.to_h
+      response_map = Hash[raw_response.split('+').map {|pair| pair.split('=')}]
       @id = response_map["RECURID"].to_i
       @amount = response_map["AMOUNT"].to_f
       @customer_id = response_map["CUSTID"]
