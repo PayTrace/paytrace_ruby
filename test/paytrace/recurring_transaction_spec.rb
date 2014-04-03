@@ -1,10 +1,10 @@
 require File.expand_path(File.dirname(__FILE__) + '../../test_helper.rb')
 
-def base_url(method)
-  "UN~#{PayTrace.configuration.user_name}|PSWD~#{PayTrace.configuration.password}|TERMS~Y|METHOD~#{method}|"
-end
-
 describe PayTrace::RecurringTransaction do
+  def base_url(method)
+    "UN~#{PayTrace.configuration.user_name}|PSWD~#{PayTrace.configuration.password}|TERMS~Y|METHOD~#{method}|"
+  end
+  
   describe "create recurrence" do
     before do
       PayTrace::API::Gateway.debug = true
@@ -12,9 +12,6 @@ describe PayTrace::RecurringTransaction do
     end
 
     it "works" do
-      # UN, PSWD, TERMS, METHOD, CUSTID, FREQUENCY, START, TOTALCOUNT, AMOUNT, TRANXTYPE
-      # DESCRIPTION, CUSTRECEIPT, RECURTYPE
-
       params = {
         customer_id: "foo_bar",
         recur_frequency: "3",

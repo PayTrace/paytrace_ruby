@@ -1,10 +1,10 @@
 require File.expand_path(File.dirname(__FILE__) + '../../test_helper.rb')
 
-def base_url
-  "UN~#{PayTrace.configuration.user_name}|PSWD~#{PayTrace.configuration.password}|TERMS~Y|"
-end
-
 describe PayTrace::Customer do
+  def base_url
+    "UN~#{PayTrace.configuration.user_name}|PSWD~#{PayTrace.configuration.password}|TERMS~Y|"
+  end
+
   before do
     PayTrace::API::Gateway.debug = true
     PayTrace::API::Gateway.next_response = "RESPONSE~ok|CUSTOMERID~12345|CUSTID~john_doe"
