@@ -56,7 +56,14 @@ module PayTrace
         cc_last_4:"LAST4",
         #bank accounts
         account_number:"DDA",
-        routing_number:"TR"
+        routing_number:"TR",
+        #recurring transactions
+        recur_id: "RECURID",
+        recur_frequency: "FREQUENCY",
+        recur_start: "START",
+        recur_count: "TOTALCOUNT",
+        recur_receipt: "CUSTRECEIPT",
+        recur_type: "RECURTYPE"
       }
     end
   end

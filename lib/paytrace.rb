@@ -9,6 +9,7 @@ require 'paytrace/api/gateway'
 require 'paytrace/api/request'
 require 'paytrace/api/response'
 require 'paytrace/exceptions'
+require 'paytrace/recurring_transaction'
 
 module PayTrace
 end
