@@ -275,9 +275,9 @@ describe PayTrace::Transaction do
           tax_amount: "1.00",
           return_clr: "Y",
           enable_partial_authentication:"Y",
-          discretionary_data:"This is some data that is discretionary",
           custom_dba:"NewName"
-        }
+        },
+        discretionary_data: {hair_color: "red"}
     )
 
     r = PayTrace::API::Request.new
@@ -290,7 +290,7 @@ describe PayTrace::Transaction do
     url.must_match /\|EMAIL~it@paytrace.com\|/
     url.must_match /\|RETURNCLR~Y\|/
     url.must_match /\|ENABLEPARTIALAUTH~Y\|/
-    url.must_match /\|DISCRETIONARY DATA~This is some data that is discretionary\|/
+    url.must_match /\|hair_color~red\|/
     url.must_match /\|CUSTOMDBA~NewName\|/
   end
 

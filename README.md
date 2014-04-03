@@ -95,7 +95,7 @@ transaction = Transaction.Sale(
     email:"me@example.com",
     description:"This is a test",
     tax_amount:".50",
-    discretionary_data:"This is some data that is discretionary"
+    discretionary_data: {hair_color: "red"}
   }
 )
 

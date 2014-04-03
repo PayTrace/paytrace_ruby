@@ -62,7 +62,11 @@ module PayTrace
       request.set_param(:customer_password, params[:customer_password])
       request.set_param(:account_number, params[:account_number])
       request.set_param(:routing_number, params[:routing_number])
-      request.set_param(:discretionary_data, params[:discretionary_data])
+      if params[:discretionary_data] 
+        params[:discretionary_data].keys.each do |k|
+          request.set_discretionary(k, params[:discretionary_data][k])
+        end
+      end
 
       gateway = PayTrace::API::Gateway.new
       response = gateway.send_request(request)

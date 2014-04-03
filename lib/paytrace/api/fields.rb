@@ -13,7 +13,6 @@ module PayTrace
         tax_amount: "TAX",
         return_clr: "RETURNCLR",
         enable_partial_authentication: "ENABLEPARTIALAUTH",
-        discretionary_data: "DISCRETIONARY DATA",
         custom_dba: "CUSTOMDBA",
         invoice:"INVOICE",
         transaction_id:"TRANXID",

@@ -35,4 +35,13 @@ describe PayTrace::API::Request do
 
     -> { r.set_param(:foo, "bar") }.must_raise PayTrace::Exceptions::ValidationError
   end
+
+  it "properly appends discretionary data" do 
+    r = PayTrace::API::Request.new
+    r.set_param(:billing_name, "Fred Jones")
+    r.set_discretionary(:hair_color, "red")
+
+    r.to_parms_string.must_equal "UN~#{PayTrace.configuration.user_name}|PSWD~#{PayTrace.configuration.password}|TERMS~Y|" +
+      "BNAME~Fred Jones|hair_color~red|"
+  end
 end

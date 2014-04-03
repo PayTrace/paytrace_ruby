@@ -1,8 +1,7 @@
 module PayTrace
   module API
     class Request
-      TRANSACTION_METHOD = "PROCESSTRANX"
-      attr_reader :params, :field_delim, :value_delim
+      attr_reader :params, :field_delim, :value_delim, :discretionary_data
 
       def initialize
         @field_delim = "|"
@@ -14,12 +13,29 @@ module PayTrace
           terms: "Y"
         }
 
+        @discretionary_data = {}
       end
 
       def to_parms_string()
-        @params.map do |k,v|
+        raw_request = @params.map do |k,v|
           "#{PayTrace::API.fields[k]}#{@value_delim}#{v}"
-        end.join(@field_delim) << "|"
+        end.join(@field_delim) << @field_delim
+
+        if @discretionary_data.any?
+          raw_request << @discretionary_data.map do |k,v|
+            "#{k}#{@value_delim}#{v}"
+          end.join(@field_delim) << @field_delim
+        end
+
+        raw_request
+      end
+
+      def set_discretionary(k, v = nil)
+        if k.is_a?(Hash)
+          @discretionary_data = k
+        else
+          @discretionary_data[k] = v unless v.nil?
+        end
       end
 
       def set_param(k, v)

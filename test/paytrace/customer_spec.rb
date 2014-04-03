@@ -95,13 +95,13 @@ describe PayTrace::Customer do
         customer_password: "none_shall_pass",
         account_number: 123456789,
         routing_number: 12345678,
-        discretionary_data: "discretionary_data"
+        discretionary_data: {hair_color: "red"}
       }
 
       PayTrace::Customer.from_transaction_id(params)
       PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~CreateCustomer|CUSTID~foo_bar|TRANXID~12345678|EMAIL~support@paytrace.com|" + 
         "PHONE~123-555-1212|FAX~456-555-1212|CUSTPSWD~none_shall_pass|DDA~123456789|TR~12345678|" +
-        "DISCRETIONARY DATA~discretionary_data|"
+        "hair_color~red|"
     end
   end
 
@@ -157,7 +157,7 @@ describe PayTrace::Customer do
         customer_password: "none_shall_pass",
         account_number: 123456789,
         routing_number: 12345678,
-        discretionary_data: "discretionary_data"
+        discretionary_data: {hair_color: "red"}
       }
 
       c = PayTrace::Customer.new
@@ -165,7 +165,7 @@ describe PayTrace::Customer do
 
       PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~UpdateCustomer|NEWCUSTID~foo_bar|" +
       "EMAIL~support@paytrace.com|PHONE~123-555-1212|FAX~456-555-1212|CUSTPSWD~none_shall_pass|DDA~123456789|" +
-      "TR~12345678|DISCRETIONARY DATA~discretionary_data|"
+      "TR~12345678|hair_color~red|"
     end
   end
 

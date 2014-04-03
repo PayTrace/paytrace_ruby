@@ -81,7 +81,7 @@ module PayTrace
     end
 
     attr_reader :amount, :credit_card, :type, :customer, :billing_address, :shipping_address,:optional_fields
-    attr_accessor :response
+    attr_accessor :response, :discretionary_data
 
     TRANSACTION_METHOD = "PROCESSTRANX"
 
@@ -92,11 +92,12 @@ module PayTrace
 
 
 
-    def initialize(amount: nil, credit_card: nil, customer: nil, type: nil, optional: nil )
+    def initialize(amount: nil, credit_card: nil, customer: nil, type: nil, optional: nil, discretionary_data: {} )
       @amount = amount
       @credit_card = credit_card
       @type = type
       @customer = customer
+      @discretionary_data = discretionary_data || {}
       include_optional(optional) if optional
     end
 
@@ -110,6 +111,9 @@ module PayTrace
       add_transaction_info(request)
       add_addresses(request)
       add_optional_fields(request) if optional_fields
+      if @discretionary_data.any?
+        request.set_discretionary(@discretionary_data)
+      end
     end
 
     private
