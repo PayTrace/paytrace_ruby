@@ -1,24 +1,34 @@
-require 'paytrace'
+require "paytrace"
 
 # see: http://help.paytrace.com/api-email-receipt for details
 
 #
 # Helper that loops through the response values and dumps them out
 #
-def dump_response_values(response)
+def dump_transaction
+  puts "[REQUEST] #{PayTrace::API::Gateway.last_request}"
+  response = PayTrace::API::Gateway.last_response_object
   if(response.has_errors?)
     response.errors.each do |key, value|
-      puts "#{key.ljust(20)}#{value}"
+      puts "[RESPONSE] ERROR: #{key.ljust(20)}#{value}"
     end
   else
     response.values.each do |key, value|
-      puts "#{key.ljust(20)}#{value}"
+      puts "[RESPONSE] #{key.ljust(20)}#{value}"
     end
   end
 end
 
 def log(msg)
   puts ">>>>>> #{msg}"
+end
+
+def trace(&block)
+  begin
+    yield
+  ensure
+    dump_transaction
+  end
 end
 
 PayTrace.configure do |config|
@@ -58,21 +68,25 @@ PayTrace::API::Gateway.debug = true
 begin
   log "Attempting to remove existing customer 'john_doe'..."
   c = PayTrace::Customer.new("john_doe")
-  c.delete()
+  trace { c.delete() }
 rescue PayTrace::Exceptions::ErrorResponse
   log "No such cusomter... continuing..."
 end
 
 log "Creating customer john_doe..."
 begin
-  c = PayTrace::Customer.from_cc_info({customer_id: "john_doe", credit_card: cc, billing_address: ba}.merge(extra))
-  dump_response_values(PayTrace::API::Gateway.last_response_object)
+  trace do
+    c = PayTrace::Customer.from_cc_info({customer_id: "john_doe", credit_card: cc, billing_address: ba}.merge(extra))
+    log "Customer ID: #{c.id}"
+  end
 rescue
-  log "Failure; raw request: #{PayTrace::API::Gateway.last_request}"
-  raise
+  if PayTrace::API::Gateway.last_response_object.errors.has_key?("ERROR-171")
+    log "Customer already exists..."
+  else
+    log "Failure; raw request: #{PayTrace::API::Gateway.last_request}"
+    raise
+  end
 end
-log "Customer ID: #{c.id}"
-dump_response_values(PayTrace::API::Gateway.last_response_object)
 
 log "Creating recurrence for john_doe..."
 params = {
@@ -86,14 +100,24 @@ params = {
   recur_receipt: "Y",
   recur_type: "A"
 }
-recur_id = PayTrace::RecurringTransaction.create(params)
-dump_response_values(PayTrace::API::Gateway.last_response_object)
-puts ">>>>>>> Recurrence ID: #{recur_id}"
 
-log "Deleting recurrence #{recur_id}..."
-PayTrace::RecurringTransaction.delete({recur_id: recur_id})
-dump_response_values(PayTrace::API::Gateway.last_response_object)
+trace do
+  recur_id = PayTrace::RecurringTransaction.create(params)
+  log "Recurrence ID: #{recur_id}"
+end
+
+begin
+  log "Exporting recurring transaction..."
+  trace do
+    exported = PayTrace::RecurringTransaction.export_scheduled({customer_id: "john_doe"})
+    log "Exported transaction:\n#{exported.to_s}"
+  end
+rescue
+  log "Export failed..."
+end
+
+log "Deleting recurrences for 'john_doe'..."
+trace { PayTrace::RecurringTransaction.delete({customer_id: "john_doe"}) }
 
 log "Deleting customer 'john_doe'..."
-c.delete()
-dump_response_values(PayTrace::API::Gateway.last_response_object)
+trace { c.delete() }

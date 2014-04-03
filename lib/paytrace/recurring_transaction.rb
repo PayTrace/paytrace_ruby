@@ -2,13 +2,40 @@ require 'paytrace'
 
 module PayTrace
   class RecurringTransaction
-    attr :id
+    attr :id, :amount, :customer_id, :next, :total_count, :current_count, :repeat, :description
+
     CREATE_METHOD = "CreateRecur"
     DELETE_METHOD = "DeleteRecur"
     UPDATE_METHOD = "UpdateRecur"
+    EXPORT_APPROVED_METHOD = "ExportCustomerRecur"
+    EXPORT_SCHEDULED_METHOD = "ExportRecur"
+
+    def initialize(raw_response)
+      response_map = raw_response.split('+').map {|pair| pair.split('=')}.to_h
+      @id = response_map["RECURID"].to_i
+      @amount = response_map["AMOUNT"].to_f
+      @customer_id = response_map["CUSTID"]
+      @next = response_map["NEXT"]
+      @total_count = response_map["TOTALCOUNT"].to_i
+      @current_count = response_map["CURRENTCOUNT"].to_i
+      @repeat = response_map["REPEAT"].to_i
+      @description = response_map["DESCRIPTION"]
+    end
+
+    def inspect
+      "<RecurringTransaction:#{@id},customer id:#{@customer_id},amount: #{@amount},next: #{@next}>"
+    end
+
+    def self.export_scheduled(params = {})
+      parse_response(set_request_data(EXPORT_SCHEDULED_METHOD, params))
+    end
+
+    def self.export_approved(params = {})
+      set_request_data(EXPORT_APPROVED_METHOD, params)
+    end
 
     def self.create(params = {})
-      set_request_data(CREATE_METHOD, params)
+      parse_response(set_request_data(CREATE_METHOD, params))
     end
 
     def self.delete(params = {})
@@ -25,13 +52,18 @@ module PayTrace
     end
 
     def self.update(params = {})
-      set_request_data(UPDATE_METHOD, params)
+      parse_response(set_request_data(UPDATE_METHOD, params))
     end
 
     def self.parse_response(response)
       unless response.has_errors?
         values = response.values
-        values["RECURID"]
+
+        if values.has_key?("RECURRINGPAYMENT")
+          new(values["RECURRINGPAYMENT"])
+        else
+          values["RECURID"]
+        end
       end
     end
 
@@ -51,7 +83,7 @@ module PayTrace
       request.set_param(:recur_type, params[:recur_type])
 
       gateway = PayTrace::API::Gateway.new
-      parse_response(gateway.send_request(request))
+      gateway.send_request(request)
     end
   end
 end

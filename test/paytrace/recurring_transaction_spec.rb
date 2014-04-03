@@ -112,6 +112,32 @@ describe PayTrace::RecurringTransaction do
       recur_id.must_equal "12345"
     end
   end
-  # describe "export single recurrence"
-  # describe "bulk update recurrences"
+
+  describe "export single approved recurrence" do
+    before do
+      PayTrace::API::Gateway.debug = true
+      PayTrace::API::Gateway.next_response = "RESPONSE~ok|RECURID~12345|"
+    end
+
+    it "works" do
+      PayTrace::RecurringTransaction.export_approved({customer_id: "john_doe"})
+      PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::RecurringTransaction::EXPORT_APPROVED_METHOD) + 
+        "CUSTID~john_doe|"
+    end
+  end
+  
+  describe "export scheduled recurrences" do
+    before do
+      PayTrace::API::Gateway.debug = true
+      PayTrace::API::Gateway.next_response = "RECURRINGPAYMENT~RECURID=72553+AMOUNT=9.99+CUSTID=john_doe+NEXT=4/22/2016+TOTALCOUNT=999+CURRENTCOUNT=0+REPEAT=0+DESCRIPTION=Recurring transaction+"
+    end
+
+    it "works" do
+      exported = PayTrace::RecurringTransaction.export_scheduled({customer_id: "john_doe"})
+      PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::RecurringTransaction::EXPORT_SCHEDULED_METHOD) + 
+        "CUSTID~john_doe|"
+
+      exported.must_be_instance_of PayTrace::RecurringTransaction
+    end
+  end
 end
