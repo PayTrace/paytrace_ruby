@@ -110,7 +110,7 @@ begin
   log "Exporting recurring transaction..."
   trace do
     exported = PayTrace::RecurringTransaction.export_scheduled({customer_id: "john_doe"})
-    log "Exported transaction:\n#{exported.to_s}"
+    log "Exported transaction:\n#{exported.inspect}"
   end
 rescue
   log "Export failed..."
