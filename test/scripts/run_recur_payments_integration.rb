@@ -68,6 +68,7 @@ PayTrace::API::Gateway.debug = true
 begin
   log "Attempting to remove existing customer 'john_doe'..."
   c = PayTrace::Customer.new("john_doe")
+  # delete customer "john_doe" if he already exists
   trace { c.delete() }
 rescue PayTrace::Exceptions::ErrorResponse
   log "No such cusomter... continuing..."
@@ -76,6 +77,7 @@ end
 log "Creating customer john_doe..."
 begin
   trace do
+    # create "john_doe" profile from credit card information and a billing address. Also include extra information such as email, phone, and fax
     c = PayTrace::Customer.from_cc_info({customer_id: "john_doe", credit_card: cc, billing_address: ba}.merge(extra))
     log "Customer ID: #{c.id}"
   end
@@ -102,6 +104,7 @@ params = {
 }
 
 trace do
+  # create a recurring payment for "john_doe" of $9.99 every month starting on 4/22/2016, running indefinitely. Send a receipt.
   recur_id = PayTrace::RecurringTransaction.create(params)
   log "Recurrence ID: #{recur_id}"
 end
@@ -109,6 +112,7 @@ end
 begin
   log "Exporting recurring transaction..."
   trace do
+    # export any scheduled recurring transactions for "john_doe" to a RecurringTransaction object...
     exported = PayTrace::RecurringTransaction.export_scheduled({customer_id: "john_doe"})
     log "Exported transaction:\n#{exported.inspect}"
   end
@@ -117,7 +121,9 @@ rescue
 end
 
 log "Deleting recurrences for 'john_doe'..."
+# delete any scheduled recurring transactions for "john_doe"
 trace { PayTrace::RecurringTransaction.delete({customer_id: "john_doe"}) }
 
 log "Deleting customer 'john_doe'..."
+# delete "john doe"
 trace { c.delete() }
