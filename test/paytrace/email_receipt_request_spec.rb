@@ -2,7 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '../../test_helper.rb')
 
 describe PayTrace::EmailReceiptRequest do
   it "correctly formats the request URL" do
-    e = PayTrace::EmailReceiptRequest.new("support@paytrace.com", "FOO1234", false)
+    e = PayTrace::EmailReceiptRequest.new({email: "support@paytrace.com", transaction_id: "FOO1234"})
     r = e.set_request
 
     url = r.to_parms_string
@@ -10,7 +10,7 @@ describe PayTrace::EmailReceiptRequest do
   end
 
   it "uses check id instead of transaction id if specified" do
-    e = PayTrace::EmailReceiptRequest.new("support@paytrace.com", "CHECK2345", true)
+    e = PayTrace::EmailReceiptRequest.new({email: "support@paytrace.com", check_id: "CHECK2345"})
     r = e.set_request
 
     url = r.to_parms_string

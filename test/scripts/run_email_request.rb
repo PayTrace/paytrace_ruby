@@ -23,13 +23,13 @@ PayTrace.configure do |config|
   config.domain = "stage.paytrace.com"
 end
 
-e = PayTrace::EmailReceiptRequest.new("support@paytrace.com", "CHECK2345", true)
+e = PayTrace::EmailReceiptRequest.new({email: "support@paytrace.com", check_id: "CHECK2345"})
 r = e.send_request
 
 # this is for the check auth version
 dump_response_values(r)
 
-e = PayTrace::EmailReceiptRequest.new("support@paytrace.com", "TRANS1234", false)
+e = PayTrace::EmailReceiptRequest.new({email: "support@paytrace.com", transaction_id: "TRANS1234"})
 r = e.send_request
 
 # this is for the transaction version

@@ -1,21 +1,22 @@
 module PayTrace
   class EmailReceiptRequest
     TRANSACTION_METHOD = "EmailReceipt"
-    attr_accessor :email, :id, :id_is_check_id
+    attr_accessor :email, :transaction_id, :check_id
 
-    def initialize(email, id, id_is_check_id = false)
-      @email = email
-      @id = id
-      @id_is_check_id = id_is_check_id
+    def initialize(params = {})
+      email, id, id_is_check_id = false
+      @email = params[:email]
+      @transaction_id = params[:transaction_id]
+      @check_id = params[:check_id]
     end
 
     def set_request(request = nil)
       request ||= PayTrace::API::Request.new
       request.set_param(:method, TRANSACTION_METHOD)
-      if @id_is_check_id
-        request.set_param(:check_id, @id)
+      if @check_id
+        request.set_param(:check_id, @check_id)
       else
-        request.set_param(:transaction_id, @id)
+        request.set_param(:transaction_id, @transaction_id)
       end
       request.set_param(:email, @email)
 
