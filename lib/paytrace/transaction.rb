@@ -17,8 +17,8 @@ module PayTrace
 
     def void(transaction_id)
       params = {transaction_id: transaction_id}
-      t = Transaction.new(type: TransactionTypes::Void,
-                          optional:params)
+      t = Transaction.new({type: TransactionTypes::Void,
+                          optional:params})
       t.response = send_request(t)
       t
     end
@@ -29,9 +29,8 @@ module PayTrace
     end
 
     def capture(transaction_id)
-      params = {transaction_id: transaction_id}
-      t = Transaction.new(type: TransactionTypes::Capture,
-                          optional:params)
+      t = Transaction.new({transaction_id: transaction_id, type: TransactionTypes::Capture,
+                          optional:params})
       t.response = send_request(t)
       t
     end
@@ -54,11 +53,11 @@ module PayTrace
       cc = CreditCard.new(args.delete(:credit_card)) if args[:credit_card]
       customer = args.delete(:customer) if args[:customer]
 
-      t = Transaction.new(amount: amount,
+      t = Transaction.new({amount: amount,
                           credit_card: cc,
                           customer: customer,
                           type: type,
-                          optional:args)
+                          optional:args})
 
       t.response = send_request(t)
       t
@@ -92,13 +91,13 @@ module PayTrace
 
 
 
-    def initialize(amount: nil, credit_card: nil, customer: nil, type: nil, optional: nil, discretionary_data: {} )
-      @amount = amount
-      @credit_card = credit_card
-      @type = type
-      @customer = customer
-      @discretionary_data = discretionary_data || {}
-      include_optional(optional) if optional
+    def initialize(params = {})
+      @amount = params[:amount]
+      @credit_card = params[:credit_card]
+      @type = params[:type]
+      @customer = params[:customer]
+      @discretionary_data = params[:discretionary_data] || {}
+      include_optional(params[:optional]) if params[:optional]
     end
 
     def set_request(request)

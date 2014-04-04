@@ -27,7 +27,7 @@ describe PayTrace::API::Gateway do
     request = mock()
     request.stubs(:to_parms_string).returns("foo")
 
-    gateway = PayTrace::API::Gateway.new(connection: connection)
+    gateway = PayTrace::API::Gateway.new(connection)
     r = gateway.send_request request
 
     faraday.verify_stubbed_calls

@@ -13,7 +13,7 @@ module PayTrace
       @@next_response = nil
       @@raise_exceptions = true
 
-      def initialize(connection: nil)
+      def initialize(connection = nil)
         @connection = connection || PayTrace.configuration.connection
       end
 

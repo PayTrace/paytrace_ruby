@@ -100,7 +100,7 @@ describe PayTrace::Transaction do
   end
   describe "adding address info" do
     it "can take a shipping address" do
-      t = PayTrace::Transaction.new(
+      t = PayTrace::Transaction.new({
               optional:{
               shipping_address: {
                   name: "Bob Smith",
@@ -110,9 +110,9 @@ describe PayTrace::Transaction do
                   state:"WA",
                   country:"USA",
                   postal_code:"98107"
-          }
               }
-        )
+            }
+                                    })
       s = t.shipping_address
       s.name.must_equal "Bob Smith"
       s.street.must_equal "1234 happy lane"
@@ -124,7 +124,7 @@ describe PayTrace::Transaction do
 
     end
     it "can take a billing address" do
-      t = PayTrace::Transaction.new(
+      t = PayTrace::Transaction.new({
                 optional: {
                 billing_address: {
                 street: "1234 happy lane",
@@ -135,7 +135,7 @@ describe PayTrace::Transaction do
                 postal_code:"98107"
               }
             }
-        )
+                                    })
         b = t.billing_address
         b.street.must_equal "1234 happy lane"
         b.street2.must_equal "suit 234"
@@ -155,9 +155,9 @@ describe PayTrace::Transaction do
         postal_code:"98107"
       }
 
-      t = PayTrace::Transaction.new(
+      t = PayTrace::Transaction.new({
           optional: { billing_address: address
-          } )
+          } })
       t.set_shipping_same_as_billing
 
       t.shipping_address.must_equal t.billing_address
@@ -166,7 +166,7 @@ describe PayTrace::Transaction do
   end
 
   it "can be set to void a transaction" do
-    t = PayTrace::Transaction.new(optional:{transaction_id:"11"})
+    t = PayTrace::Transaction.new({optional:{transaction_id:"11"}})
   end
 
   it "can create and send a void transaction" do
@@ -235,7 +235,7 @@ describe PayTrace::Transaction do
   end
 
   it "can include a billing address" do
-    t = PayTrace::Transaction.new(
+    t = PayTrace::Transaction.new({
           optional:{
             billing_address:{
               name:"John Doe",
@@ -247,7 +247,7 @@ describe PayTrace::Transaction do
               postal_code:"98107"
             }
           }
-    )
+                                  })
 
     t.shipping_address.must_be_nil
 
@@ -268,7 +268,7 @@ describe PayTrace::Transaction do
   end
 
   it "can include misc fields as well" do
-    t = PayTrace::Transaction.new(
+    t = PayTrace::Transaction.new({
         optional: {
           email:"it@paytrace.com",
           description:"This is a test",
@@ -278,7 +278,7 @@ describe PayTrace::Transaction do
           custom_dba:"NewName"
         },
         discretionary_data: {hair_color: "red"}
-    )
+                                  })
 
     r = PayTrace::API::Request.new
     t.set_request(r)
@@ -298,10 +298,10 @@ describe PayTrace::Transaction do
     cc =  PayTrace::CreditCard.new( {
             swipe: '%B4055010000000005^J/SCOTT^1212101001020001000000701000000?;4055010000000005=12121010010270100001?'
           })
-        t = PayTrace::Transaction.new(
+        t = PayTrace::Transaction.new({
         amount: '1.00',
         credit_card:cc
-    )
+                                      })
 
     r = PayTrace::API::Request.new
     t.set_request(r)
@@ -316,10 +316,10 @@ describe PayTrace::Transaction do
 
   it "can do a reference sales request " do
 
-    t = PayTrace::Transaction.new(
+    t = PayTrace::Transaction.new({
         amount: '1.00',
         optional:{transaction_id: '1234'}
-    )
+                                  })
 
     r = PayTrace::API::Request.new
     t.set_request(r)
@@ -372,12 +372,12 @@ describe PayTrace::Transaction do
 
 
     }
-    t = PayTrace::Transaction.new(
+    t = PayTrace::Transaction.new({
         amount: '1.00',
         credit_card:cc,
         type: PayTrace::TransactionTypes::SALE,
         optional:optional
-    )
+                                  })
 
     r = PayTrace::API::Request.new
     t.set_request(r)
