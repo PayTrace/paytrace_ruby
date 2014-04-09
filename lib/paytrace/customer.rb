@@ -6,6 +6,7 @@ module PayTrace
     UPDATE_CUSTOMER = "UpdateCustomer"
     DELETE_CUSTOMER = "DeleteCustomer"
     EXPORT_CUSTOMERS = "ExportCustomers"
+    EXPORT_INACTIVE_CUSTOMERS = "ExportInactiveCustomers"
     EXPORT_CUSTOMERS_RESPONSE = "CUSTOMERRECORD"
 
     def initialize(customer_id = nil)
@@ -34,6 +35,18 @@ module PayTrace
       request.set_param(:return_bin, params[:return_bin])
       gateway = PayTrace::API::Gateway.new
       response = gateway.send_request(request, [EXPORT_CUSTOMERS_RESPONSE])      
+
+      unless response.has_errors?
+        response.values[EXPORT_CUSTOMERS_RESPONSE]
+      end
+    end
+
+    def self.export_inactive(params = {})
+      request = PayTrace::API::Request.new
+      request.set_param(:method, EXPORT_INACTIVE_CUSTOMERS)
+      request.set_param(:days_inactive, params[:days_inactive])
+      gateway = PayTrace::API::Gateway.new
+      response = gateway.send_request(request, [EXPORT_CUSTOMERS_RESPONSE])
 
       unless response.has_errors?
         response.values[EXPORT_CUSTOMERS_RESPONSE]

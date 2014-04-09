@@ -53,6 +53,7 @@ module PayTrace
         customer_fax:"FAX",
         customer_phone:"PHONE",
         approval_code:"APPROVAL",
+        days_inactive:"DAYS",
         #cash advance
         cash_advance:"CASHADVANCE",
         id_number:"PHOTOID",

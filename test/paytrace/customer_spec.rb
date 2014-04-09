@@ -21,6 +21,18 @@ describe PayTrace::Customer do
       records[0].must_be_instance_of Hash
       records[0].keys.count.must_equal 29
     end
+
+    it "also exports inactive customers" do
+      PayTrace::API::Gateway.next_response = "CUSTOMERRECORD~CUSTID=12345+BNAME=John Doe+LASTTRANX=01/01/2014+LASTCHECK=02/01/2014+WHEN=03/01/2014"
+      records = PayTrace::Customer.export_inactive({days_inactive: 30})
+
+      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~ExportInactiveCustomers|DAYS~30|"
+      records.count.must_equal 1
+      records.must_be_instance_of Array
+      records[0].must_be_instance_of Hash
+      records[0].keys.count.must_equal 5
+      records[0]['BNAME'].must_equal "John Doe"
+    end
   end
 
   describe "create customer profile" do

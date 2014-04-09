@@ -47,3 +47,6 @@ PayTrace::API::Gateway.debug = true
 
 # this should dump out a wall of text...
 trace { puts PayTrace::Customer.export() }
+
+# this should dump inactive api-exporting-customer-profiles
+trace { puts PayTrace::Customer.export_inactive({days_inactive: 30}) }
