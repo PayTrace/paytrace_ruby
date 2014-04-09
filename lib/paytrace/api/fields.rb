@@ -71,7 +71,11 @@ module PayTrace
         recur_type: "RECURTYPE",
         # attach signatures
         image_data: "IMAGEDATA",
-        image_type: "IMAGETYPE"
+        image_type: "IMAGETYPE",
+        source_zip: "SOURCEZIP",
+        source_state: "SOURCESTATE",
+        shipping_weight: "WEIGHT",
+        shippers: "SHIPPERS"
       }
     end
   end

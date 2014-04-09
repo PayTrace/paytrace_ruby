@@ -30,6 +30,14 @@ describe PayTrace::API::Request do
     r.params[:billing_name].must_equal "Fred Jones"
   end
 
+  it "can bulk set params" do
+    params = {billing_name: "Fred Jones", billing_postal_code: 98133}
+    r = PayTrace::API::Request.new
+    r.set_params([:billing_name, :billing_postal_code], params)
+    r.params[:billing_name].must_equal "Fred Jones"
+    r.params[:billing_postal_code].must_equal 98133
+  end
+
   it "raises a validation exception for unknown fields" do
     r = PayTrace::API::Request.new
 

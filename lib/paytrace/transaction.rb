@@ -88,6 +88,8 @@ module PayTrace
     EXPORT_TRANSACTIONS_METHOD = "ExportTranx"
     EXPORT_TRANSACTIONS_RESPONSE = "TRANSACTIONRECORD"
     ATTACH_SIGNATURE_METHOD = "AttachSignature"
+    CALCULATE_SHIPPING_COST = "CalculateShipping"
+    CALCULATE_SHIPPING_COST_RESPONSE = "SHIPPINGRECORD"
 
     def set_shipping_same_as_billing()
         @shipping_address = @billing_address
@@ -150,6 +152,18 @@ module PayTrace
 
       gateway = PayTrace::API::Gateway.new
       gateway.send_request(request)
+    end
+
+    def self.calculate_shipping(params = {})
+      request = PayTrace::API::Request.new
+      request.set_param(:method, CALCULATE_SHIPPING_COST)
+      request.set_params(params.keys, params)
+
+      gateway = PayTrace::API::Gateway.new
+      response = gateway.send_request(request, [CALCULATE_SHIPPING_COST_RESPONSE])      
+      unless response.has_errors?
+        response.values[CALCULATE_SHIPPING_COST_RESPONSE]
+      end
     end
 
     private

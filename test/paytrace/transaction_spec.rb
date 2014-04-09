@@ -25,6 +25,23 @@ describe PayTrace::Transaction do
     result.has_errors?.must_equal false
   end
 
+  it "calculates shipping costs" do
+    PayTrace::API::Gateway.debug = true
+    PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"
+    params = {
+      #UN, PSWD, TERMS, METHOD, SOURCEZIP, SOURCESTATE, SZIP, WEIGHT, SHIPPERS, SSTATE
+      source_zip: 98133,
+      source_state: "WA", 
+      shipping_postal_code: 94947,
+      shipping_weight: 5.1,
+      shippers: "UPS,USPS,FEDEX",
+      shipping_state: "CA",
+      shipping_country: "US"
+    }
+    result = PayTrace::Transaction.calculate_shipping(params)
+    result[0]['SHIPPINGCOMPANY'].must_equal "USPS"
+  end
+
   describe "create sales transactions" do
     before do
       @response = mock()

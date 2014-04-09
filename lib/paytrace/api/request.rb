@@ -43,6 +43,12 @@ module PayTrace
 
         @params[k] = v unless v.nil?
       end
+
+      def set_params(keys, params)
+        keys.each do |key|
+          set_param(key, params[key])
+        end
+      end
     end
   end
 end
