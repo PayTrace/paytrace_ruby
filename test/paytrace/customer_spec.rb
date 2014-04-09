@@ -10,6 +10,19 @@ describe PayTrace::Customer do
     PayTrace::API::Gateway.next_response = "RESPONSE~ok|CUSTOMERID~12345|CUSTID~john_doe"
   end
 
+  describe "export customers" do
+    it "works" do
+      PayTrace::API::Gateway.next_response = "CUSTOMERRECORD~CUSTID=741356+CUSTOMERID=741356+CC=************5454+EXPMNTH=12+EXPYR=17+SNAME=+SADDRESS=+SADDRESS2=+SCITY=+SCOUNTY=+SSTATE=+SZIP=+SCOUNTRY=US+BNAME=DUMMY1+BADDRESS=+BADDRESS2=+BCITY=+BSTATE=+BZIP=+BCOUNTRY=US+EMAIL=+PHONE=+FAX=+WHEN=2/7/2014 5:02:08 PM+USER=demo123+IP=131.191.89.5+DDA=123412341234+TR=051000017+hair_color=+|"
+      records = PayTrace::Customer.export()
+
+      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~ExportCustomers|"
+      records.count.must_equal 1
+      records.must_be_instance_of Array
+      records[0].must_be_instance_of Hash
+      records[0].keys.count.must_equal 29
+    end
+  end
+
   describe "create customer profile" do
     # first call path: create from credit card information
     it "can be created from credit card information" do

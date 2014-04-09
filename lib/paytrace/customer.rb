@@ -5,6 +5,8 @@ module PayTrace
     CREATE_CUSTOMER = "CreateCustomer"
     UPDATE_CUSTOMER = "UpdateCustomer"
     DELETE_CUSTOMER = "DeleteCustomer"
+    EXPORT_CUSTOMERS = "ExportCustomers"
+    EXPORT_CUSTOMERS_RESPONSE = "CUSTOMERRECORD"
 
     def initialize(customer_id = nil)
       @customer_id = customer_id
@@ -20,6 +22,22 @@ module PayTrace
       request.set_param(:customer_id, @customer_id)
       gateway = PayTrace::API::Gateway.new
       gateway.send_request(request)
+    end
+
+    def self.export(params = {})
+      # CUSTID, EMAIL, USER, RETURNBIN
+      request = PayTrace::API::Request.new
+      request.set_param(:method, EXPORT_CUSTOMERS)
+      request.set_param(:customer_id, params[:customer_id])
+      request.set_param(:email, params[:email])
+      request.set_param(:transaction_user, params[:transaction_user])
+      request.set_param(:return_bin, params[:return_bin])
+      gateway = PayTrace::API::Gateway.new
+      response = gateway.send_request(request, [EXPORT_CUSTOMERS_RESPONSE])      
+
+      unless response.has_errors?
+        response.values[EXPORT_CUSTOMERS_RESPONSE]
+      end
     end
 
     def self.delete(customer_id)
