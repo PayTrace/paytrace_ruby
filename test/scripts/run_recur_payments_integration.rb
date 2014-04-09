@@ -20,7 +20,7 @@ def dump_transaction
 end
 
 def log(msg)
-  puts ">>>>>> #{msg}"
+  puts ">>>>>>           #{msg}"
 end
 
 def trace(&block)
@@ -53,7 +53,11 @@ ba = PayTrace::Address.new({
   postal_code: "98133",
   address_type: :billing
   })
-extra = {
+
+params = {
+  customer_id: "john_doe",
+  credit_card: cc,
+  billing_address: ba,
   email: "support@paytrace.com",
   phone: "206-555-1212",
   fax: "206-555-1313",
@@ -77,8 +81,9 @@ end
 log "Creating customer john_doe..."
 begin
   trace do
+    ################
     # create "john_doe" profile from credit card information and a billing address. Also include extra information such as email, phone, and fax
-    c = PayTrace::Customer.from_cc_info({customer_id: "john_doe", credit_card: cc, billing_address: ba}.merge(extra))
+    c = PayTrace::Customer.from_cc_info(params)
     log "Customer ID: #{c.id}"
   end
 rescue
@@ -104,6 +109,7 @@ params = {
 }
 
 trace do
+  ################
   # create a recurring payment for "john_doe" of $9.99 every month starting on 4/22/2016, running indefinitely. Send a receipt.
   recur_id = PayTrace::RecurringTransaction.create(params)
   log "Recurrence ID: #{recur_id}"
@@ -112,6 +118,7 @@ end
 begin
   log "Exporting recurring transaction..."
   trace do
+    ################
     # export any scheduled recurring transactions for "john_doe" to a RecurringTransaction object...
     exported = PayTrace::RecurringTransaction.export_scheduled({customer_id: "john_doe"})
     log "Exported transaction:\n#{exported.inspect}"
@@ -121,9 +128,11 @@ rescue
 end
 
 log "Deleting recurrences for 'john_doe'..."
+################
 # delete any scheduled recurring transactions for "john_doe"
 trace { PayTrace::RecurringTransaction.delete({customer_id: "john_doe"}) }
 
 log "Deleting customer 'john_doe'..."
+################
 # delete "john doe"
 trace { c.delete() }

@@ -1,6 +1,8 @@
 require 'paytrace/api/request'
 require 'paytrace/api/gateway'
 require 'paytrace/address'
+require 'base64'
+
 module PayTrace
   module TransactionOperations
     def sale(args)
@@ -83,13 +85,13 @@ module PayTrace
     attr_accessor :response, :discretionary_data
 
     TRANSACTION_METHOD = "PROCESSTRANX"
-
+    EXPORT_TRANSACTIONS_METHOD = "ExportTranx"
+    EXPORT_TRANSACTIONS_RESPONSE = "TRANSACTIONRECORD"
+    ATTACH_SIGNATURE_METHOD = "AttachSignature"
 
     def set_shipping_same_as_billing()
         @shipping_address = @billing_address
     end
-
-
 
     def initialize(params = {})
       @amount = params[:amount]
@@ -113,6 +115,41 @@ module PayTrace
       if @discretionary_data.any?
         request.set_discretionary(@discretionary_data)
       end
+    end
+
+    def self.export(params = {})
+      request = PayTrace::API::Request.new
+      request.set_param(:method, EXPORT_TRANSACTIONS_METHOD)
+      request.set_param(:transaction_id, params[:transaction_id])
+      request.set_param(:start_date, params[:start_date])
+      request.set_param(:end_date, params[:end_date])
+      request.set_param(:transaction_type, params[:transaction_type])
+      request.set_param(:customer_id, params[:customer_id])
+      request.set_param(:transaction_user, params[:transaction_user])
+      request.set_param(:return_bin, params[:return_bin])
+      request.set_param(:search_text, params[:search_test])
+
+      gateway = PayTrace::API::Gateway.new
+      response = gateway.send_request(request, [EXPORT_TRANSACTIONS_RESPONSE])
+
+      unless response.has_errors?
+        response.values[EXPORT_TRANSACTIONS_RESPONSE]
+      end
+    end
+
+    def self.attach_signature(params = {})
+      request = PayTrace::API::Request.new
+      request.set_param(:method, ATTACH_SIGNATURE_METHOD)
+      request.set_param(:image_data, params[:image_data])
+      request.set_param(:image_type, params[:image_type])
+      if params.has_key?(:image_file)
+        File.open(params[:image_file], 'rb') do |file|
+          request.set_param(:image_data, Base64.encode64(file.read))
+        end
+      end
+
+      gateway = PayTrace::API::Gateway.new
+      gateway.send_request(request)
     end
 
     private

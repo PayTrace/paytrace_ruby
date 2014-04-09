@@ -12,11 +12,16 @@ module PayTrace
         description: "DESCRIPTION",
         tax_amount: "TAX",
         return_clr: "RETURNCLR",
+        return_bin: "RETURNBIN",
         enable_partial_authentication: "ENABLEPARTIALAUTH",
         custom_dba: "CUSTOMDBA",
         invoice:"INVOICE",
         transaction_id:"TRANXID",
+        transaction_user:"USER",
+        search_text:"SEARCHTEXT",
         check_id:"CHECKID",
+        start_date:"SDATE",
+        end_date:"EDATE",
         #credit card
         card_number: "CC",
         expiration_year: "EXPYR",
@@ -62,7 +67,10 @@ module PayTrace
         recur_start: "START",
         recur_count: "TOTALCOUNT",
         recur_receipt: "CUSTRECEIPT",
-        recur_type: "RECURTYPE"
+        recur_type: "RECURTYPE",
+        # attach signatures
+        image_data: "IMAGEDATA",
+        image_type: "IMAGETYPE"
       }
     end
   end

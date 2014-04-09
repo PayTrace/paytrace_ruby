@@ -1,6 +1,30 @@
 require File.expand_path(File.dirname(__FILE__) + '../../test_helper.rb')
 
 describe PayTrace::Transaction do
+  it "exports transaction(s)" do
+    PayTrace::API::Gateway.debug = true
+    PayTrace::API::Gateway.next_response = "TRANSACTIONRECORD~TRANXID=1143"
+    records = PayTrace::Transaction.export({transaction_id: 1143})
+    records.must_be_instance_of Array
+    records.count.must_equal 1
+    records[0].must_be_instance_of Hash
+    records[0]["TRANXID"].must_equal "1143"
+  end
+
+  it "successfully attaches base-64 encoded signatures to transactions" do
+    PayTrace::API::Gateway.debug = true
+    PayTrace::API::Gateway.next_response = "RESPONSE~172. The signature image was successfully attached to Transaction ID 13192003.|"
+    result = PayTrace::Transaction.attach_signature({transaction_id: 13192003, image_data: "foo", image_type: "png"})
+    result.has_errors?.must_equal false
+  end
+
+  it "successfully attaches image files to transactions" do
+    PayTrace::API::Gateway.debug = true
+    PayTrace::API::Gateway.next_response = "RESPONSE~172. The signature image was successfully attached to Transaction ID 13192003.|"
+    result = PayTrace::Transaction.attach_signature({transaction_id: 13192003, image_file: __FILE__, image_type: "png"})
+    result.has_errors?.must_equal false
+  end
+
   describe "create sales transactions" do
     before do
       @response = mock()

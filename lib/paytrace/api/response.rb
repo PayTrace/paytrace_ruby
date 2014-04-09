@@ -3,12 +3,13 @@ module PayTrace
     class Response
       attr_reader :values, :errors
 
-      def initialize(response_string)
+      def initialize(response_string, multi_value_fields = [])
         @field_delim = "|"
         @value_delim = "~"
+        @multi_value_delim = "+"
         @values = {}
         @errors = {}
-        parse_response(response_string)
+        parse_response(response_string, multi_value_fields)
       end
 
       def response_code
@@ -19,7 +20,7 @@ module PayTrace
            @errors.length > 0
       end
 
-      def parse_response(response_string)
+      def parse_response(response_string, multi_value_fields = [])
 
         if (response_string.include? "ERROR")
            return parse_errors(response_string)
@@ -28,7 +29,12 @@ module PayTrace
         pairs = response_string.split(@field_delim)
         pairs.each do |p|
           k,v = p.split(@value_delim)
-          @values[k] = v
+          if multi_value_fields.include?(k)
+            @values[k] ||= []
+            @values[k] << Hash[v.split(@multi_value_delim).map {|pair| pair.split('=')}]
+          else
+            @values[k] = v
+          end
         end
       end
 
