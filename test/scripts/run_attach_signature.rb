@@ -1,4 +1,4 @@
-$:<< "./lib"
+# $:<< "./lib" # uncomment this to run against a Git clone instead of an installed gem
 
 require "paytrace"
 
