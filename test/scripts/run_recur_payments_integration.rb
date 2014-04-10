@@ -1,41 +1,9 @@
+# $:<< "./lib" # uncomment this to run against a Git clone instead of an installed gem
+
 require "paytrace"
+require "paytrace/debug"
 
-# see: http://help.paytrace.com/api-email-receipt for details
-
-#
-# Helper that loops through the response values and dumps them out
-#
-def dump_transaction
-  puts "[REQUEST] #{PayTrace::API::Gateway.last_request}"
-  response = PayTrace::API::Gateway.last_response_object
-  if(response.has_errors?)
-    response.errors.each do |key, value|
-      puts "[RESPONSE] ERROR: #{key.ljust(20)}#{value}"
-    end
-  else
-    response.values.each do |key, value|
-      puts "[RESPONSE] #{key.ljust(20)}#{value}"
-    end
-  end
-end
-
-def log(msg)
-  puts ">>>>>>           #{msg}"
-end
-
-def trace(&block)
-  begin
-    yield
-  ensure
-    dump_transaction
-  end
-end
-
-PayTrace.configure do |config|
-  config.user_name = "demo123"
-  config.password = "demo123"
-  config.domain = "stage.paytrace.com"
-end
+PayTrace::Debug.configure_test
 
 # this should be a valid credit card number (it can be a "sandbox" number, however)
 cc = PayTrace::CreditCard.new({
@@ -67,35 +35,33 @@ params = {
   discretionary_data: {test: "test data"}
 }
 
-PayTrace::API::Gateway.debug = true
-
 begin
-  log "Attempting to remove existing customer 'john_doe'..."
+  PayTrace::Debug.log "Attempting to remove existing customer 'john_doe'..."
   c = PayTrace::Customer.new("john_doe")
   # delete customer "john_doe" if he already exists
-  trace { c.delete() }
+  PayTrace::Debug.trace { c.delete() }
 rescue PayTrace::Exceptions::ErrorResponse
-  log "No such cusomter... continuing..."
+  PayTrace::Debug.log "No such cusomter... continuing..."
 end
 
-log "Creating customer john_doe..."
+PayTrace::Debug.log "Creating customer john_doe..."
 begin
-  trace do
+  PayTrace::Debug.trace do
     ################
     # create "john_doe" profile from credit card information and a billing address. Also include extra information such as email, phone, and fax
     c = PayTrace::Customer.from_cc_info(params)
-    log "Customer ID: #{c.id}"
+    PayTrace::Debug.log "Customer ID: #{c.id}"
   end
 rescue
   if PayTrace::API::Gateway.last_response_object.errors.has_key?("ERROR-171")
-    log "Customer already exists..."
+    PayTrace::Debug.log "Customer already exists..."
   else
-    log "Failure; raw request: #{PayTrace::API::Gateway.last_request}"
+    PayTrace::Debug.log "Failure; raw request: #{PayTrace::API::Gateway.last_request}"
     raise
   end
 end
 
-log "Creating recurrence for john_doe..."
+PayTrace::Debug.log "Creating recurrence for john_doe..."
 params = {
   customer_id: "john_doe",
   recur_frequency: "3",
@@ -108,31 +74,31 @@ params = {
   recur_type: "A"
 }
 
-trace do
+PayTrace::Debug.trace do
   ################
   # create a recurring payment for "john_doe" of $9.99 every month starting on 4/22/2016, running indefinitely. Send a receipt.
   recur_id = PayTrace::RecurringTransaction.create(params)
-  log "Recurrence ID: #{recur_id}"
+  PayTrace::Debug.log "Recurrence ID: #{recur_id}"
 end
 
 begin
-  log "Exporting recurring transaction..."
-  trace do
+  PayTrace::Debug.log "Exporting recurring transaction..."
+  PayTrace::Debug.trace do
     ################
     # export any scheduled recurring transactions for "john_doe" to a RecurringTransaction object...
     exported = PayTrace::RecurringTransaction.export_scheduled({customer_id: "john_doe"})
-    log "Exported transaction:\n#{exported.inspect}"
+    PayTrace::Debug.log "Exported transaction:\n#{exported.inspect}"
   end
 rescue
-  log "Export failed..."
+  PayTrace::Debug.log "Export failed..."
 end
 
-log "Deleting recurrences for 'john_doe'..."
+PayTrace::Debug.log "Deleting recurrences for 'john_doe'..."
 ################
 # delete any scheduled recurring transactions for "john_doe"
-trace { PayTrace::RecurringTransaction.delete({customer_id: "john_doe"}) }
+PayTrace::Debug.trace { PayTrace::RecurringTransaction.delete({customer_id: "john_doe"}) }
 
-log "Deleting customer 'john_doe'..."
+PayTrace::Debug.log "Deleting customer 'john_doe'..."
 ################
 # delete "john doe"
-trace { c.delete() }
+PayTrace::Debug.trace { c.delete() }

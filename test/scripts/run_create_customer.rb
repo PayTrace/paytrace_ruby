@@ -1,27 +1,9 @@
-require 'paytrace'
+# $:<< "./lib" # uncomment this to run against a Git clone instead of an installed gem
 
-# see: http://help.paytrace.com/api-email-receipt for details
+require "paytrace"
+require "paytrace/debug"
 
-#
-# Helper that loops through the response values and dumps them out
-#
-def dump_response_values(response)
-  if(response.has_errors?)
-    response.errors.each do |key, value|
-      puts "#{key.ljust(20)}#{value}"
-    end
-  else
-    response.values.each do |key, value|
-      puts "#{key.ljust(20)}#{value}"
-    end
-  end
-end
-
-PayTrace.configure do |config|
-  config.user_name = "demo123"
-  config.password = "demo123"
-  config.domain = "stage.paytrace.com"
-end
+PayTrace::Debug.configure_test
 
 # this should be a valid credit card number (it can be a "sandbox" number, however)
 cc = PayTrace::CreditCard.new({
@@ -39,17 +21,16 @@ ba = PayTrace::Address.new({
   postal_code: "98133",
   address_type: :billing
   })
-extra = {
+params = {
+  customer_id: "john_doe",
+  credit_card: cc,
+  billing_address: ba,
   email: "support@paytrace.com",
   phone: "206-555-1212",
   fax: "206-555-1313",
   password: "foxtrot123",
   account_number: 123456789,
-  routing_number: 12345678,
-  discretionary_data: "Discretionary data."
+  routing_number: 325081403,
+  discretionary_data: { hair_color: "blue" }
 }
-
-PayTrace::API::Gateway.set_debug(true)
-c = PayTrace::Customer.from_cc_info("john_doe", cc, ba, nil, extra)
-
-dump_response_values(PayTrace::API::Gateway.last_response)
+PayTrace::Debug.trace { c = PayTrace::Customer.from_cc_info(params) }

@@ -13,11 +13,8 @@ module PayTrace
     def set_request(request = nil)
       request ||= PayTrace::API::Request.new
       request.set_param(:method, TRANSACTION_METHOD)
-      if @check_id
-        request.set_param(:check_id, @check_id)
-      else
-        request.set_param(:transaction_id, @transaction_id)
-      end
+      request.set_param(:check_id, @check_id)
+      request.set_param(:transaction_id, @transaction_id)
       request.set_param(:email, @email)
 
       request
