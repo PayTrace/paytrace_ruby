@@ -81,6 +81,25 @@ PayTrace::Debug.trace do
   PayTrace::Debug.log "Recurrence ID: #{recur_id}"
 end
 
+PayTrace::Debug.log "Modify recurrence for john_doe..."
+PayTrace::Debug.trace do
+  recur_id = PayTrace::RecurringTransaction.create(params)
+  PayTrace::Debug.log "Recurrence ID: #{recur_id}"
+  update_params = {
+    recur_id: recur_id,
+    description: "Updated recurring payment"
+  }
+  PayTrace::RecurringTransaction.update(update_params)
+end
+
+PayTrace::Debug.log "Delete a recurrence for john_doe..."
+PayTrace::Debug.trace do
+  recur_id = PayTrace::RecurringTransaction.create(params)
+  PayTrace::Debug.log "Recurrence ID: #{recur_id}"
+  PayTrace::RecurringTransaction.delete({recur_id: recur_id})
+end
+
+
 begin
   PayTrace::Debug.log "Exporting recurring transaction..."
   PayTrace::Debug.trace do
