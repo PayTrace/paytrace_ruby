@@ -142,6 +142,7 @@ module PayTrace
     def self.attach_signature(params = {})
       request = PayTrace::API::Request.new
       request.set_param(:method, ATTACH_SIGNATURE_METHOD)
+      request.set_param(:transaction_id, params[:transaction_id])
       request.set_param(:image_data, params[:image_data])
       request.set_param(:image_type, params[:image_type])
       if params.has_key?(:image_file)
