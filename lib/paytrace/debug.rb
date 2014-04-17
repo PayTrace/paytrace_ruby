@@ -29,6 +29,8 @@ module PayTrace
       begin
         yield
       rescue Exception => e
+        puts "[REQUEST] #{PayTrace::API::Gateway.last_request}"
+
         raise
       else
         dump_transaction

@@ -243,12 +243,12 @@ describe PayTrace::Transaction do
     r = PayTrace::API::Request.new
     t.set_request(r)
 
-    r.params[:card_number].must_equal "1234123412341234"
-    r.params[:expiration_month].must_equal 10
-    r.params[:expiration_year].must_equal 24
-    r.params[:transaction_type].must_equal "SALE"
-    r.params[:method].must_equal "PROCESSTRANX"
-    r.params[:amount].must_equal "23.12"
+    r.params[:card_number].must_equal ["1234123412341234"]
+    r.params[:expiration_month].must_equal [10]
+    r.params[:expiration_year].must_equal [24]
+    r.params[:transaction_type].must_equal ["SALE"]
+    r.params[:method].must_equal ["PROCESSTRANX"]
+    r.params[:amount].must_equal ["23.12"]
 
     url = r.to_parms_string
     url.must_equal "UN~#{PayTrace.configuration.user_name}|PSWD~#{PayTrace.configuration.password}|TERMS~Y|CC~1234123412341234|EXPMNTH~10|EXPYR~24|TRANXTYPE~SALE|METHOD~PROCESSTRANX|AMOUNT~23.12|"
@@ -263,8 +263,8 @@ describe PayTrace::Transaction do
     r = PayTrace::API::Request.new
     t.set_request(r)
 
-    r.params[:customer_id].must_equal 1234
-    r.params[:amount].must_equal "12.34"
+    r.params[:customer_id].must_equal [1234]
+    r.params[:amount].must_equal ["12.34"]
 
     url = r.to_parms_string
 

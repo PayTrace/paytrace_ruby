@@ -90,6 +90,8 @@ module PayTrace
     ATTACH_SIGNATURE_METHOD = "AttachSignature"
     CALCULATE_SHIPPING_COST = "CalculateShipping"
     CALCULATE_SHIPPING_COST_RESPONSE = "SHIPPINGRECORD"
+    LEVEL_3_VISA_METHOD = "Level3Visa"
+    LEVEL_3_MC_METHOD = "Level3MCRD"
 
     def set_shipping_same_as_billing()
         @shipping_address = @billing_address
@@ -164,6 +166,68 @@ module PayTrace
       response = gateway.send_request(request, [CALCULATE_SHIPPING_COST_RESPONSE])      
       unless response.has_errors?
         response.values[CALCULATE_SHIPPING_COST_RESPONSE]
+      end
+    end
+
+    def self.add_level_three_visa(params = {})
+      line_items = params.delete(:line_items) || []
+      request = PayTrace::API::Request.new
+      request.set_param(:method, LEVEL_3_VISA_METHOD)
+      request.set_params([
+        :transaction_id,
+        :invoice,
+        :customer_reference_id,
+        :tax_amount,
+        :national_tax,
+        :merchant_tax_id,
+        :customer_tax_id,
+        :ccode,
+        :discount,
+        :freight,
+        :duty,
+        :source_zip,
+        :shipping_postal_code,
+        :shipping_country,
+        :add_tax,
+        :add_tax_rate
+        ], params)
+      line_items.each do |li|
+        request.set_multivalue(:line_item, li)
+      end
+
+      gateway = PayTrace::API::Gateway.new
+      response = gateway.send_request(request)      
+      unless response.has_errors?
+        response.values
+      end
+    end
+
+    def self.add_level_three_mc(params = {})
+      line_items = params.delete(:line_items) || []
+      request = PayTrace::API::Request.new
+      request.set_param(:method, LEVEL_3_MC_METHOD)
+      request.set_params([
+        :transaction_id,
+        :invoice,
+        :customer_reference_id,
+        :tax_amount,
+        :national_tax,
+        :freight,
+        :duty,
+        :source_zip,
+        :shipping_postal_code,
+        :shipping_country,
+        :add_tax,
+        :additional_tax_included
+        ], params)
+      line_items.each do |li|
+        request.set_multivalue(:line_item, li)
+      end
+
+      gateway = PayTrace::API::Gateway.new
+      response = gateway.send_request(request)      
+      unless response.has_errors?
+        response.values
       end
     end
 

@@ -41,7 +41,7 @@ module PayTrace
         @@raise_exceptions = raise_exceptions
       end
 
-      def send_request(request, multi_value_fields = [])
+      def send_request(request, multi_value_response_fields = [])
         @@last_request = request.to_parms_string if @@debug
         unless (@@debug && @@next_response)
           res = @connection.post PayTrace.configuration.url, parmlist: request.to_parms_string
@@ -51,7 +51,7 @@ module PayTrace
         end
         
         @@last_response = raw_response
-        response = PayTrace::API::Response.new(raw_response, multi_value_fields)
+        response = PayTrace::API::Response.new(raw_response, multi_value_response_fields)
         @@last_response_object = response
 
         @@next_response = nil # just to be sure

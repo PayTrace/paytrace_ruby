@@ -53,13 +53,13 @@ describe PayTrace::Address do
       })
     a.set_request(r)
 
-    r.params[:shipping_name].must_equal "John Doe"
-    r.params[:shipping_address].must_equal "1234 Main Street"
-    r.params[:shipping_address2].must_equal "Apt. B"
-    r.params[:shipping_city].must_equal "Shoreline"
-    r.params[:shipping_state].must_equal "WA"
-    r.params[:shipping_country].must_equal "USA"
-    r.params[:shipping_region].must_equal "region??"
-    r.params[:shipping_postal_code].must_equal "98133"
+    r.params[:shipping_name].must_equal ["John Doe"]
+    r.params[:shipping_address].must_equal ["1234 Main Street"]
+    r.params[:shipping_address2].must_equal ["Apt. B"]
+    r.params[:shipping_city].must_equal ["Shoreline"]
+    r.params[:shipping_state].must_equal ["WA"]
+    r.params[:shipping_country].must_equal ["USA"]
+    r.params[:shipping_region].must_equal ["region??"]
+    r.params[:shipping_postal_code].must_equal ["98133"]
   end
 end
