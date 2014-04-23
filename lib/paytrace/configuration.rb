@@ -13,7 +13,8 @@ module PayTrace
     def update_password(params)
       request = PayTrace::API::Request.new
       request.set_param(:method, RESET_PASSWORD_METHOD)
-      request.set_params([:new_password, :new_password_confirmation], params)
+      request.set_param(:new_password, params[:new_password])
+      request.set_param(:new_password_confirmation, params[:new_password])
       gateway = PayTrace::API::Gateway.new
       response = gateway.send_request(request)   
 

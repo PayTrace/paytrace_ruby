@@ -8,5 +8,5 @@ PayTrace::Debug.configure_test("tom_test_user", "password4", "dev2.paytrace.com"
 PayTrace::Debug.trace {
   # change my demo user password...
   # note, if you run this, it won't run again because the password has been changed :)
-  PayTrace.configuration.update_password(new_password: 'password5', new_password_confirmation: 'password4')
+  PayTrace.configuration.update_password(new_password: 'password5')
 }
