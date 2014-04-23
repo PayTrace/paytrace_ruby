@@ -33,4 +33,33 @@ describe PayTrace::Configuration do
     end
     PayTrace.configuration.url.must_equal "https://sandbox.paytrace.com/api/default.pay"
   end
+
+  it "allows you to change your password" do
+    PayTrace::API::Gateway.debug = true
+    PayTrace::API::Gateway.next_response = "RESPONSE~100. Your password was successfully updated."
+
+    old_password = PayTrace.configuration.password
+    c = PayTrace::Configuration.new
+    c.update_password(new_password: 'foobar', new_password_confirmation: 'foobar')
+
+    PayTrace::API::Gateway.last_request.must_equal "UN~#{PayTrace.configuration.user_name}|PSWD~#{old_password}|TERMS~Y|" + 
+      "METHOD~UpdatePassword|NEWPSWD~foobar|NEWPSWD2~foobar|"
+
+    PayTrace::API::Gateway.next_response = "RESPONSE~100. Your password was successfully updated."
+    c.update_password(new_password: old_password, new_password_confirmation: old_password)
+  end
+
+  it "changes the config password when you successfully call update_password" do
+    PayTrace::API::Gateway.debug = true
+    PayTrace::API::Gateway.next_response = "RESPONSE~100. Your password was successfully updated."
+
+    old_password = PayTrace.configuration.password
+    c = PayTrace::Configuration.new
+    c.update_password(new_password: 'foobar', new_password_confirmation: 'foobar')
+
+    PayTrace.configuration.password.must_equal 'foobar'
+
+    PayTrace::API::Gateway.next_response = "RESPONSE~100. Your password was successfully updated."
+    c.update_password(new_password: old_password, new_password_confirmation: old_password)
+  end
 end

@@ -12,6 +12,8 @@ module PayTrace
         description: "DESCRIPTION",
         tax_amount: "TAX",
         national_tax: "NTAX",
+        new_password: "NEWPSWD",
+        new_password_confirmation: "NEWPSWD2",
         # level 3 stuff
         merchant_tax_id: "MERCHANTTAXID",
         customer_tax_id: "CUSTOMERTAXID",

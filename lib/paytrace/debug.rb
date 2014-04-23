@@ -37,11 +37,11 @@ module PayTrace
       end
     end
 
-    def self.configure_test(un = "demo123", pw = "demo123")
+    def self.configure_test(un = "demo123", pw = "demo123", domain = "stage.paytrace.com")
       PayTrace.configure do |config|
         config.user_name = un
         config.password = pw
-        config.domain = "stage.paytrace.com"
+        config.domain = domain
       end
     end
   end
