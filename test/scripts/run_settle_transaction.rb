@@ -3,7 +3,7 @@ $:<< "./lib" # uncomment this to run against a Git clone instead of an installed
 require "paytrace"
 require "paytrace/debug"
 
-PayTrace::Debug.configure_test
+PayTrace::Debug.configure_test("demo123", "demo123", "stage.paytrace.com")
 
 # settle a transaction via a recurrence ID
 PayTrace::Debug.trace do
