@@ -92,6 +92,7 @@ module PayTrace
     CALCULATE_SHIPPING_COST_RESPONSE = "SHIPPINGRECORD"
     LEVEL_3_VISA_METHOD = "Level3Visa"
     LEVEL_3_MC_METHOD = "Level3MCRD"
+    SETTLE_TRANSACTION_METHOD = "SettleTranx"
 
     def set_shipping_same_as_billing()
         @shipping_address = @billing_address
@@ -229,6 +230,14 @@ module PayTrace
       unless response.has_errors?
         response.values
       end
+    end
+
+    def self.settle_transaction(params = {})
+      request = PayTrace::API::Request.new
+      request.set_param(:method, SETTLE_TRANSACTION_METHOD)
+      request.set_params([:recur_id, :customer_id], params)
+      gateway = PayTrace::API::Gateway.new
+      gateway.send_request(request)      
     end
 
     private

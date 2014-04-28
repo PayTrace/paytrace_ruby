@@ -1,6 +1,10 @@
 require File.expand_path(File.dirname(__FILE__) + '../../test_helper.rb')
 
 describe PayTrace::Transaction do
+  def base_url
+    "UN~#{PayTrace.configuration.user_name}|PSWD~#{PayTrace.configuration.password}|TERMS~Y|"
+  end
+
   it "exports transaction(s)" do
     PayTrace::API::Gateway.debug = true
     PayTrace::API::Gateway.next_response = "TRANSACTIONRECORD~TRANXID=1143"
@@ -40,6 +44,29 @@ describe PayTrace::Transaction do
     }
     result = PayTrace::Transaction.calculate_shipping(params)
     result[0]['SHIPPINGCOMPANY'].must_equal "USPS"
+  end
+
+
+  it "can settle a transaction by recurrence ID" do
+    PayTrace::API::Gateway.debug = true
+    PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"
+    params = {
+      # UN, PSWD, TERMS, METHOD, RECURID
+      recur_id: 12345
+    }
+    result = PayTrace::Transaction.settle_transaction(params)
+    PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~SettleTranx|RECURID~12345|"
+  end
+
+  it "can settle a transaction by customer ID" do
+    PayTrace::API::Gateway.debug = true
+    PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"
+    params = {
+      # UN, PSWD, TERMS, METHOD, RECURID
+      customer_id: 12346
+    }
+    result = PayTrace::Transaction.settle_transaction(params)
+    PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~SettleTranx|CUSTID~12346|"
   end
 
   describe "create sales transactions" do
