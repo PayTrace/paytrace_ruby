@@ -57,7 +57,7 @@ PayTrace::Debug.trace do
 end
 
 # This is testing the Level 3 data addition for Mastercard transactions
-PayTrace::Debug.configure_test("NEWapiuser", "test456")
+
 PayTrace::Debug.trace do
   params = {
       transaction_id: "1448",
