@@ -3,7 +3,8 @@ $:<< "./lib" # uncomment this to run against a Git clone instead of an installed
 require "paytrace"
 require "paytrace/debug"
 
-PayTrace::Debug.configure_test
+# change this as needed to reflect the username, password, and test host you're testing against
+PayTrace::Debug.configure_test("demo123", "demo123", "stage.paytrace.com")
 
 # This is testing the Level 3 data addition for Visa transactions
 PayTrace::Debug.trace do

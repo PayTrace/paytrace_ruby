@@ -3,7 +3,8 @@
 require "paytrace"
 require "paytrace/debug"
 
-PayTrace::Debug.configure_test
+# change this as needed to reflect the username, password, and test host you're testing against
+PayTrace::Debug.configure_test("demo123", "demo123", "stage.paytrace.com")
 
 # see: http://help.paytrace.com/api-email-receipt for details
 
