@@ -47,6 +47,15 @@ describe PayTrace::Transaction do
     result[0]['SHIPPINGCOMPANY'].must_equal "USPS"
   end
 
+  it "can adjust a transaction" do
+    PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"
+    params = {
+      transaction_id: 1234,
+      amount: 9.87
+    }
+    result = PayTrace::Transaction.adjust_amount(params)
+    PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~AdjustAmount|TRANXID~1234|AMOUNT~9.87|"
+  end
 
   it "can settle a transaction by recurrence ID" do
     PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"

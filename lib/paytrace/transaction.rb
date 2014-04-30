@@ -93,6 +93,7 @@ module PayTrace
     LEVEL_3_VISA_METHOD = "Level3Visa"
     LEVEL_3_MC_METHOD = "Level3MCRD"
     SETTLE_TRANSACTION_METHOD = "SettleTranx"
+    ADJUST_AMOUNT_METHOD = "AdjustAmount"
 
     def set_shipping_same_as_billing()
         @shipping_address = @billing_address
@@ -236,6 +237,15 @@ module PayTrace
       request = PayTrace::API::Request.new
       request.set_param(:method, SETTLE_TRANSACTION_METHOD)
       request.set_params([:recur_id, :customer_id], params)
+      gateway = PayTrace::API::Gateway.new
+      gateway.send_request(request)      
+    end
+
+    def self.adjust_amount(params = {})
+      request = PayTrace::API::Request.new
+      request.set_param(:method, ADJUST_AMOUNT_METHOD)
+      request.set_param(:transaction_id, params[:transaction_id])
+      request.set_param(:amount, params[:amount])
       gateway = PayTrace::API::Gateway.new
       gateway.send_request(request)      
     end
