@@ -21,6 +21,13 @@ module PayTrace
         @@debug = enable
       end 
 
+      def self.reset_trace
+        @@last_request = nil
+        @@last_response = nil
+        @@last_response_object = nil
+        @@next_response = nil
+      end
+
       def self.last_request
         @@last_request
       end

@@ -5,8 +5,12 @@ describe PayTrace::Transaction do
     "UN~#{PayTrace.configuration.user_name}|PSWD~#{PayTrace.configuration.password}|TERMS~Y|"
   end
 
-  it "exports transaction(s)" do
+  before do
     PayTrace::API::Gateway.debug = true
+    PayTrace::API::Gateway.reset_trace()
+  end
+
+  it "exports transaction(s)" do
     PayTrace::API::Gateway.next_response = "TRANSACTIONRECORD~TRANXID=1143"
     records = PayTrace::Transaction.export({transaction_id: 1143})
     records.must_be_instance_of Array
@@ -16,21 +20,18 @@ describe PayTrace::Transaction do
   end
 
   it "successfully attaches base-64 encoded signatures to transactions" do
-    PayTrace::API::Gateway.debug = true
     PayTrace::API::Gateway.next_response = "RESPONSE~172. The signature image was successfully attached to Transaction ID 13192003.|"
     result = PayTrace::Transaction.attach_signature({transaction_id: 13192003, image_data: "foo", image_type: "png"})
     result.has_errors?.must_equal false
   end
 
   it "successfully attaches image files to transactions" do
-    PayTrace::API::Gateway.debug = true
     PayTrace::API::Gateway.next_response = "RESPONSE~172. The signature image was successfully attached to Transaction ID 13192003.|"
     result = PayTrace::Transaction.attach_signature({transaction_id: 13192003, image_file: __FILE__, image_type: "png"})
     result.has_errors?.must_equal false
   end
 
   it "calculates shipping costs" do
-    PayTrace::API::Gateway.debug = true
     PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"
     params = {
       #UN, PSWD, TERMS, METHOD, SOURCEZIP, SOURCESTATE, SZIP, WEIGHT, SHIPPERS, SSTATE
@@ -48,7 +49,6 @@ describe PayTrace::Transaction do
 
 
   it "can settle a transaction by recurrence ID" do
-    PayTrace::API::Gateway.debug = true
     PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"
     params = {
       # UN, PSWD, TERMS, METHOD, RECURID
@@ -59,7 +59,6 @@ describe PayTrace::Transaction do
   end
 
   it "can settle a transaction by customer ID" do
-    PayTrace::API::Gateway.debug = true
     PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"
     params = {
       # UN, PSWD, TERMS, METHOD, RECURID
