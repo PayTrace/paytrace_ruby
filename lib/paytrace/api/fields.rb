@@ -89,9 +89,10 @@ module PayTrace
         id_number:"PHOTOID",
         id_expiration:"IDEXP",
         cc_last_4:"LAST4",
-        #bank accounts
+        #bank accounts/checks
         account_number:"DDA",
         routing_number:"TR",
+        check_type: "CHECKTYPE",
         #recurring transactions
         recur_id: "RECURID",
         recur_frequency: "FREQUENCY",
