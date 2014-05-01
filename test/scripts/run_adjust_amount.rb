@@ -7,10 +7,10 @@ require "paytrace/debug"
 PayTrace::Debug.configure_test("demo123", "demo123", "stage.paytrace.com")
 
 PayTrace::Debug.trace do
-  params = 
+  params = {
     # this must be a valid transaction ID for the credentials supplied
     transaction_id: 1131,
-    amount: 19.87
+    amount: 4.01
   }
   PayTrace::Transaction::adjust_amount(params)
 end
