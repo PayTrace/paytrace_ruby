@@ -106,7 +106,9 @@ module PayTrace
         source_zip: "SOURCEZIP",
         source_state: "SOURCESTATE",
         shipping_weight: "WEIGHT",
-        shippers: "SHIPPERS"
+        shippers: "SHIPPERS",
+        # test flag
+        test_flag: "TEST"
       }
     end
   end
