@@ -342,7 +342,9 @@ module PayTrace
         @shipping_address = @billing_address
       end
 
-      @optional_fields = args
+      if args.any?
+        @optional_fields = args
+      end
     end
 
     def send_request
