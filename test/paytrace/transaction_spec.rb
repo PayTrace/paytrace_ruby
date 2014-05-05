@@ -214,25 +214,6 @@ describe PayTrace::Transaction do
         b.country.must_equal "USA"
         b.postal_code.must_equal "98107"
     end
-
-    it "will return the same address if set to billing shipping same address" do
-      address = {
-        street: "1234 happy lane",
-        street2: "suit 234",
-        city:"Seattle",
-        state:"WA",
-        country:"USA",
-        postal_code:"98107"
-      }
-
-      t = PayTrace::Transaction.new({
-          optional: { billing_address: address
-          } })
-      t.set_shipping_same_as_billing
-
-      t.shipping_address.must_equal t.billing_address
-    end
-
   end
 
   it "can be set to void a transaction" do

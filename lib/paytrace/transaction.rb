@@ -78,10 +78,6 @@ module PayTrace
       t
     end
 
-    def set_shipping_same_as_billing()
-        @shipping_address = @billing_address
-    end
-
     def initialize(params = {})
       @amount = params[:amount]
       @credit_card = params[:credit_card]
@@ -270,7 +266,7 @@ module PayTrace
       s =  args.delete(:shipping_address) if args[:shipping_address]
       @shipping_address = PayTrace::Address.new({address_type: :shipping}.merge(s)) if s
       if args[:address_shipping_same_as_billing]
-        self.set_shipping_same_as_billing
+        @shipping_address = @billing_address
       end
 
       @optional_fields = args
