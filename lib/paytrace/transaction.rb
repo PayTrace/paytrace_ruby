@@ -4,7 +4,9 @@ require 'paytrace/address'
 require 'base64'
 
 module PayTrace
+  # Manages transaction-related functionality
   class Transaction
+    # :nodoc:
     attr_reader :amount, :credit_card, :type, :customer, :billing_address, :shipping_address,:optional_fields
     attr_accessor :response, :discretionary_data
 
@@ -19,18 +21,62 @@ module PayTrace
     SETTLE_TRANSACTION_METHOD = "SettleTranx"
     ADJUST_AMOUNT_METHOD = "AdjustAmount"
 
+    # :doc:
+
+    # See http://help.paytrace.com/api-sale
+    # Creates a sale transaction. Params (in hash format):
+    # * *:amount* -- the amount of the transaction
+    # Depending upon the type of sale, the following additional parameters may be present:
+    # * *:credit_card* -- a PayTrace::CreditCard object (key entered sale)
+    # * *:customer* -- a PayTrace::Customer object (for additional customer data; customer ID token or referenced transaction sale). _Note:_ for discretionary data, the best way to include it is by adding it to the PayTrace::Customer object.
+    # * *:optional* -- optional fields hash, kept inside the parameters
+    # _Note:_ the following parameters are kept in the optional fields hash
+    # * *:swipe* -- credit card swipe data (card swiped sales)
+    # * *:customer_id* -- a PayTrace customer ID (customer ID token sale)
+    # * *:transaction_id* -- a transaction ID (referenced transaction sale)
+    # * *:csc* -- credit card security code (customer ID token or referenced transaction sale)
+    # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction sale)
+    # * *:description* -- a description of the sale (customer ID token or referenced transaction sale)
+    # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
+    # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
+    # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(customer ID token sale)
+    # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token sale)
+    # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
     def self.sale(args)
       create_transaction(args,TransactionTypes::SALE)
     end
 
+    # See http://help.paytrace.com/api-authorizations
+    # Performs an authorization transaction. Params (in hash format):
+    # * *:amount* -- the amount of the transaction
+    # Depending upon the type of authorization, the following additional parameters may be present:
+    # * *:credit_card* -- a PayTrace::CreditCard object (standard authorization)
+    # * *:customer* -- a PayTrace::Customer object (for additional customer data; customer ID token or referenced transaction sale). _Note:_ for discretionary data, the best way to include it is by adding it to the PayTrace::Customer object.
+    # * *:optional* -- optional fields hash, kept inside the parameters
+    # _Note:_ the following parameters are kept in the optional fields hash
+    # * *:customer_id* -- a PayTrace customer ID (customer ID token auth)
+    # * *:transaction_id* -- a transaction ID (referenced transaction sale)
+    # * *:csc* -- credit card security code (customer ID token or referenced transaction auth)
+    # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction auth)
+    # * *:description* -- a description of the auth (customer ID token or referenced transaction auth)
+    # * *:tax_amount* -- the amount of tax on the auth (customer ID token or referenced transaction auth)
+    # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction auth)
+    # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process auths or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(customer ID token auth)
+    # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process auths or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token auth)
+    # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token auth)
     def self.authorization(args)
       create_transaction(args,TransactionTypes::Authorization)
     end
 
+    # See http://help.paytrace.com/api-refunds
+    # Note that the parameters and transaction types are the same as for self.sale
     def self.refund(args)
       create_transaction(args,TransactionTypes::Refund)
     end
 
+    # See http://help.paytrace.com/api-void
+    # Performs a void request. Parameters are:
+    # * *transaction_id* -- (_Note:_ this is _not_ in a hash!) the transaction ID to void
     def self.void(transaction_id)
       params = {transaction_id: transaction_id}
       t = Transaction.new({type: TransactionTypes::Void,
@@ -39,11 +85,18 @@ module PayTrace
       t
     end
 
+    # See http://help.paytrace.com/api-forced-sale
+    # Performs a forced approval sale. Params are:
+    # *approval_code* -- (_Note:_ this is _not_ in a hash!) the approval code obtained external to the PayTrace system
+    # *args* -- the argument hash, see the arguments for self.sale
     def self.forced_sale(approval_code,args)
       args[:approval_code] = approval_code
       create_transaction(args,TransactionTypes::ForcedSale)
     end
 
+    # See http://help.paytrace.com/api-capture
+    # Capturing a transaction updates an approved authorization to a pending settlement status that will initiate a transfer of funds. Processing a capture through the PayTrace API may only be accomplished by providing the transaction ID of the unsettled transaction that should be settled. Params are:
+    # * *transaction_id* -- the transaction ID to be captured
     def self.capture(transaction_id)
       t = Transaction.new({transaction_id: transaction_id, type: TransactionTypes::Capture,
                           optional:params})
@@ -51,6 +104,25 @@ module PayTrace
       t
     end
 
+    # See http://help.paytrace.com/api-cash-advance
+    # Processing a Cash Advance transaction is similar to processing a Sale, however Cash Advances are special transactions that result in cash disbursements to the card holder. Consequently, additional information is required to process Cash Advances. Cash Advances should always be swiped unless your card reader is not able to reader the card’s magnetic stripe. Additionally, your PayTrace account must be specially configured to process this type of transaction. Params are:
+    # * *:amount* -- the amount of the cash advance
+    # Depending upon the type of cash advance, the following additional parameters may be present:
+    # * *:credit_card* -- a PayTrace::CreditCard object (key entered cash advances)
+    # * *:optional* -- optional fields hash, kept inside the parameters
+    # _Note:_ the following parameters are kept in the optional fields hash
+    # * *:swipe* -- swipe data provided with the cash advance (swiped cash advances)
+    # * *:cash_advance* -- (swiped cash advances) When set to "Y", this attribute causes a Sale transaction to be processed as a cash advance where cash is given to the customer as opposed to a product or service. Please note that Cash Advances may only be processed on accounts that are set up on the TSYS/Vital network and are configured to process Cash Advances. Also, only swiped/card present Sales may include the CashAdvance parameter
+    # * *:id_number* -- the card holder’s drivers license number or other form of photo ID
+    # * *:id_expiration* -- the expiration date of the card holder’s photo ID. MM/DD/YYYY
+    # * *:cc_last_4* -- the last 4 digits of the card number as it appears on the face of the card
+    # * *:billing_address* -- a billing address provided with the cash advance
+    # * *:shipping_address* -- a shipping address provided with the cash advance (key entered cash advances)
+    # * *:csc* -- credit card security code (key entered cash advances)
+    # * *:invoice* -- an internal invoice number (key entered cash advances)
+    # * *:description* -- a description of the auth (key entered cash advances)
+    # * *:tax_amount* -- the amount of tax on the auth (key entered cash advances)
+    # * *:customer_reference_id* -- a customer reference ID (key entered cash advances)
     def self.cash_advance(args)
       args[:cash_advance] = "Y"
 
@@ -63,6 +135,7 @@ module PayTrace
       create_transaction(optional,TransactionTypes::StoreForward)
     end
 
+    # :nodoc:
     def self.create_transaction(args,type)
       amount = args.delete(:amount)  if args[:amount]
       cc = CreditCard.new(args.delete(:credit_card)) if args[:credit_card]
@@ -101,6 +174,8 @@ module PayTrace
         request.set_discretionary(@discretionary_data)
       end
     end
+    # :doc:
+
 
     def self.export(params = {})
       request = PayTrace::API::Request.new
