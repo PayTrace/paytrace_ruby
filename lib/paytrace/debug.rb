@@ -1,6 +1,7 @@
 require 'paytrace'
 
 module PayTrace
+  # Useful helper methods for debugging.
   module Debug
     #
     # Helper that loops through the response values and dumps them out
@@ -19,10 +20,17 @@ module PayTrace
       end
     end
 
+    # Formatted output for a text message.
     def self.log(msg)
       puts ">>>>>>           #{msg}"
     end
 
+    # Helper method to dump a request response pair. Usage:
+    # Usage: 
+    #  PayTrace::Debug.trace do
+    #  # code the intiates a request/response pair
+    #  end
+    # _Note:_ also includes exception handling to ensure responses are dumped even if an exception occurs
     def self.trace(&block)
       PayTrace::API::Gateway.debug = true
 
@@ -37,6 +45,8 @@ module PayTrace
       end
     end
 
+    # Helper method to configure a default test environment. Accepts *username*, *password*, and *domain* parameters.
+    # domain defaults to "stage.paytrace.com" and the username/password default to the credentials for the sandbox account
     def self.configure_test(un = "demo123", pw = "demo123", domain = "stage.paytrace.com")
       PayTrace.configure do |config|
         config.user_name = un
