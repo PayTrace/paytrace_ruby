@@ -100,6 +100,7 @@ module PayTrace
         recur_count: "TOTALCOUNT",
         recur_receipt: "CUSTRECEIPT",
         recur_type: "RECURTYPE",
+        recur_next: "NEXT",
         # attach signatures
         image_data: "IMAGEDATA",
         image_type: "IMAGETYPE",
