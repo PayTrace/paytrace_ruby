@@ -8,6 +8,7 @@ describe PayTrace::Transaction do
   before do
     PayTrace::API::Gateway.debug = true
     PayTrace::API::Gateway.reset_trace()
+    PayTrace::API::Gateway.next_response = "RESPONSE~ok|"
   end
 
   it "exports transaction(s)" do
@@ -78,10 +79,6 @@ describe PayTrace::Transaction do
   end
 
   describe "create sales transactions" do
-    before do
-      @response = mock()
-      PayTrace::API::Gateway.any_instance.expects(:send_request).returns(@response)
-    end
     it "can create a Payment Authorization" do
       t = PayTrace::Transaction.authorization(
           { amount:"1242.32",
@@ -122,7 +119,6 @@ describe PayTrace::Transaction do
       t.credit_card.card_number.must_equal "1234123412341234"
       t.credit_card.expiration_month.must_equal 10
       t.credit_card.expiration_year.must_equal 24
-      t.response.must_equal @response
     end
 
     it "can run a transaction for a customer" do
@@ -135,8 +131,6 @@ describe PayTrace::Transaction do
       t.type.must_equal PayTrace::TransactionTypes::SALE
       t.customer.must_equal 123456
       t.credit_card.must_be_nil
-      t.response.must_equal @response
-
     end
 
     it "can run a cash advance" do
@@ -255,16 +249,10 @@ describe PayTrace::Transaction do
   end
 
   it "can create a forced sale" do
-    @response = mock()
-    PayTrace::API::Gateway.any_instance.expects(:send_request).returns(@response)
     t = PayTrace::Transaction.forced_sale("111",{})
 
     t.optional_fields[:approval_code].must_equal "111"
     t.type.must_equal PayTrace::TransactionTypes::ForcedSale
-
-
-
-
   end
 
 

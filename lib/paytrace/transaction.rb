@@ -4,83 +4,7 @@ require 'paytrace/address'
 require 'base64'
 
 module PayTrace
-  module TransactionOperations
-    def sale(args)
-      create_transaction(args,TransactionTypes::SALE)
-    end
-
-    def authorization(args)
-      create_transaction(args,TransactionTypes::Authorization)
-    end
-
-    def refund(args)
-      create_transaction(args,TransactionTypes::Refund)
-    end
-
-    def void(transaction_id)
-      params = {transaction_id: transaction_id}
-      t = Transaction.new({type: TransactionTypes::Void,
-                          optional:params})
-      t.response = send_request(t)
-      t
-    end
-
-    def forced_sale(approval_code,args)
-      args[:approval_code] = approval_code
-      create_transaction(args,TransactionTypes::ForcedSale)
-    end
-
-    def capture(transaction_id)
-      t = Transaction.new({transaction_id: transaction_id, type: TransactionTypes::Capture,
-                          optional:params})
-      t.response = send_request(t)
-      t
-    end
-
-    def cash_advance(args)
-      args[:cash_advance] = "Y"
-
-      create_transaction(args,TransactionTypes::SALE)
-    end
-
-    def store_forward(amount,credit_card,optional={})
-      optional[:amount] = amount
-      optional[:credit_card] = credit_card
-      create_transaction(optional,TransactionTypes::StoreForward)
-    end
-
-    private
-    def create_transaction(args,type)
-      amount = args.delete(:amount)  if args[:amount]
-      cc = CreditCard.new(args.delete(:credit_card)) if args[:credit_card]
-      customer = args.delete(:customer) if args[:customer]
-
-      t = Transaction.new({amount: amount,
-                          credit_card: cc,
-                          customer: customer,
-                          type: type,
-                          optional:args})
-
-      t.response = send_request(t)
-      t
-    end
-
-    private
-    def send_request(t)
-      request = PayTrace::API::Request.new
-      t.set_request(request)
-
-      gateway = PayTrace::API::Gateway.new
-      gateway.send_request(request)
-    end
-
-  end
-
   class Transaction
-    class << self
-      include TransactionOperations
-    end
-
     attr_reader :amount, :credit_card, :type, :customer, :billing_address, :shipping_address,:optional_fields
     attr_accessor :response, :discretionary_data
 
@@ -94,6 +18,65 @@ module PayTrace
     LEVEL_3_MC_METHOD = "Level3MCRD"
     SETTLE_TRANSACTION_METHOD = "SettleTranx"
     ADJUST_AMOUNT_METHOD = "AdjustAmount"
+
+    def self.sale(args)
+      create_transaction(args,TransactionTypes::SALE)
+    end
+
+    def self.authorization(args)
+      create_transaction(args,TransactionTypes::Authorization)
+    end
+
+    def self.refund(args)
+      create_transaction(args,TransactionTypes::Refund)
+    end
+
+    def self.void(transaction_id)
+      params = {transaction_id: transaction_id}
+      t = Transaction.new({type: TransactionTypes::Void,
+                          optional:params})
+      t.response = t.send_request
+      t
+    end
+
+    def self.forced_sale(approval_code,args)
+      args[:approval_code] = approval_code
+      create_transaction(args,TransactionTypes::ForcedSale)
+    end
+
+    def self.capture(transaction_id)
+      t = Transaction.new({transaction_id: transaction_id, type: TransactionTypes::Capture,
+                          optional:params})
+      t.response = t.send_request
+      t
+    end
+
+    def self.cash_advance(args)
+      args[:cash_advance] = "Y"
+
+      create_transaction(args,TransactionTypes::SALE)
+    end
+
+    def self.store_forward(amount,credit_card,optional={})
+      optional[:amount] = amount
+      optional[:credit_card] = credit_card
+      create_transaction(optional,TransactionTypes::StoreForward)
+    end
+
+    def self.create_transaction(args,type)
+      amount = args.delete(:amount)  if args[:amount]
+      cc = CreditCard.new(args.delete(:credit_card)) if args[:credit_card]
+      customer = args.delete(:customer) if args[:customer]
+
+      t = Transaction.new({amount: amount,
+                          credit_card: cc,
+                          customer: customer,
+                          type: type,
+                          optional:args})
+
+      
+      t
+    end
 
     def set_shipping_same_as_billing()
         @shipping_address = @billing_address
@@ -250,7 +233,6 @@ module PayTrace
       gateway.send_request(request)      
     end
 
-    private
     def add_transaction_info(request)
       request.set_param(:transaction_type, type)
       request.set_param(:method, TRANSACTION_METHOD)
@@ -294,7 +276,13 @@ module PayTrace
       @optional_fields = args
     end
 
+    def send_request
+      request = PayTrace::API::Request.new
+      self.set_request(request)
 
+      gateway = PayTrace::API::Gateway.new
+      gateway.send_request(request)
+    end
   end
 
   module TransactionTypes
