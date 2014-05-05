@@ -22,7 +22,7 @@ module PayTrace
     # Updates the customer's information from parameters hash. See the self.from_cc_info and self.from_transaction_id for
     # information on the permitted parameters. Immediately updates the profile.
     def update(params = {})
-      set_request_data(UPDATE_CUSTOMER, params)
+      send_request(UPDATE_CUSTOMER, params)
     end
 
     # See http://help.paytrace.com/api-delete-customer-profile
@@ -95,36 +95,51 @@ module PayTrace
     # *:discretionary_data* -- discretionay data (if any) for the customer, expressed as a hash
     def self.from_cc_info(params = {})
       customer = Customer.new(params[:customer_id])
-      customer.set_request_data(CREATE_CUSTOMER, params)
+      customer.send_request(CREATE_CUSTOMER, params)
     end
 
     # See http://help.paytrace.com/api-create-customer-profile
     # Creates a new customer profile from credit card information. Params are the same as from_cc_info, with the exception that *:transaction_id* is used to reference a previous sale transaction instead of a credit card.
     def self.from_transaction_id(params = {})
       customer = Customer.new(params[:customer_id])
-      customer.set_request_data(CREATE_CUSTOMER, params)
+      customer.send_request(CREATE_CUSTOMER, params)
     end
 
     # :nodoc:
     # Internal helper method; not meant to be called directly.
-    def set_request_data(method, params)
-      request = PayTrace::API::Request.new
+    def send_request(method, params)
+      request ||= PayTrace::API::Request.new
       request.set_param(:method, method)
+      if params[:billing_address]
+        params[:billing_address].name = nil if (method == CREATE_CUSTOMER && params[:transaction_id])
+      end
+      set_request_data(params, request)
+
+      gateway = PayTrace::API::Gateway.new
+      response = gateway.send_request(request)
+      unless response.has_errors?
+        values = response.values
+        @id = values["CUSTID"]
+        @customer_id = values["CUSTOMERID"]
+        self
+      else
+        nil
+      end
+    end
+
+    # :nodoc:
+    # Internal helper method; not meant to be called directly.
+    def set_request_data(params, request = nil)
+      request ||= PayTrace::API::Request.new
       request.set_param(:customer_id, params[:customer_id])
       request.set_param(:new_customer_id, params[:new_customer_id])
       request.set_param(:transaction_id, params[:transaction_id])
 
-      if params[:billing_address]
-        params[:billing_address].name = nil if (method == CREATE_CUSTOMER && params[:transaction_id])
-        params[:billing_address].set_request(request)
-      end
+      params[:billing_address].set_request(request) if params[:billing_address]
       params[:shipping_address].set_request(request) if params[:shipping_address]
-        
 
       if params[:credit_card]
-        request.set_param(:card_number, params[:credit_card].card_number)
-        request.set_param(:expiration_month, params[:credit_card].expiration_month)
-        request.set_param(:expiration_year, params[:credit_card].expiration_year)
+        params[:credit_card].set_request_data(request)
       end
 
       request.set_param(:email, params[:email])
@@ -137,17 +152,6 @@ module PayTrace
         params[:discretionary_data].keys.each do |k|
           request.set_discretionary(k, params[:discretionary_data][k])
         end
-      end
-
-      gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request)
-      unless response.has_errors?
-        values = response.values
-        @id = values["CUSTID"]
-        @customer_id = values["CUSTOMERID"]
-        self
-      else
-        nil
       end
     end
   end
