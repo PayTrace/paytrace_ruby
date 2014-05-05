@@ -141,13 +141,14 @@ module PayTrace
       cc = CreditCard.new(args.delete(:credit_card)) if args[:credit_card]
       customer = args.delete(:customer) if args[:customer]
 
-      t = Transaction.new({amount: amount,
-                          credit_card: cc,
-                          customer: customer,
-                          type: type,
-                          optional:args})
+      t = Transaction.new({ 
+        amount: amount,
+        credit_card: cc,
+        customer: customer,
+        type: type,
+        optional:args})      
+      t.send_request
 
-      
       t
     end
 
