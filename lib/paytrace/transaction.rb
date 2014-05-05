@@ -181,14 +181,15 @@ module PayTrace
     def self.export(params = {})
       request = PayTrace::API::Request.new
       request.set_param(:method, EXPORT_TRANSACTIONS_METHOD)
-      request.set_param(:transaction_id, params[:transaction_id])
-      request.set_param(:start_date, params[:start_date])
-      request.set_param(:end_date, params[:end_date])
-      request.set_param(:transaction_type, params[:transaction_type])
-      request.set_param(:customer_id, params[:customer_id])
-      request.set_param(:transaction_user, params[:transaction_user])
-      request.set_param(:return_bin, params[:return_bin])
-      request.set_param(:search_text, params[:search_test])
+      request.set_params([
+        :transaction_id,
+        :start_date, 
+        :end_date, 
+        :transaction_type, 
+        :customer_id, 
+        :transaction_user, 
+        :return_bin,
+        :search_text], params)
 
       gateway = PayTrace::API::Gateway.new
       response = gateway.send_request(request, [EXPORT_TRANSACTIONS_RESPONSE])
@@ -201,9 +202,9 @@ module PayTrace
     def self.attach_signature(params = {})
       request = PayTrace::API::Request.new
       request.set_param(:method, ATTACH_SIGNATURE_METHOD)
-      request.set_param(:transaction_id, params[:transaction_id])
-      request.set_param(:image_data, params[:image_data])
-      request.set_param(:image_type, params[:image_type])
+      request.set_params([:transaction_id, 
+        :image_data, 
+        :image_type], params)
       if params.has_key?(:image_file)
         File.open(params[:image_file], 'rb') do |file|
           request.set_param(:image_data, Base64.encode64(file.read))
