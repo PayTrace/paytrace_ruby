@@ -129,10 +129,10 @@ module PayTrace
       create_transaction(args,TransactionTypes::SALE)
     end
 
-    def self.store_forward(amount,credit_card,optional={})
-      optional[:amount] = amount
-      optional[:credit_card] = credit_card
-      create_transaction(optional,TransactionTypes::StoreForward)
+    def self.store_forward(amount,credit_card,args={})
+      args[:amount] = amount
+      args[:credit_card] = credit_card
+      create_transaction(args,TransactionTypes::StoreForward)
     end
 
     # :nodoc:
