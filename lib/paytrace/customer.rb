@@ -3,6 +3,7 @@ module PayTrace
   class Customer
     attr :id, :customer_id
 
+    # :nodoc:
     CREATE_CUSTOMER = "CreateCustomer"
     UPDATE_CUSTOMER = "UpdateCustomer"
     DELETE_CUSTOMER = "DeleteCustomer"
@@ -10,6 +11,7 @@ module PayTrace
     EXPORT_INACTIVE_CUSTOMERS = "ExportInactiveCustomers"
     EXPORT_CUSTOMERS_RESPONSE = "CUSTOMERRECORD"
 
+    # :doc:
     # Initializer. Only param is:
     # *customer_id* -- the merchant-generated customer ID, if present
     def initialize(customer_id = nil)
@@ -103,6 +105,7 @@ module PayTrace
       customer.set_request_data(CREATE_CUSTOMER, params)
     end
 
+    # :nodoc:
     # Internal helper method; not meant to be called directly.
     def set_request_data(method, params)
       request = PayTrace::API::Request.new
