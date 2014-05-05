@@ -313,11 +313,7 @@ module PayTrace
     end
 
     def add_credit_card(request, cc)
-      request.set_param(:card_number, cc.card_number) if cc.card_number
-      request.set_param(:expiration_month, cc.expiration_month) if cc.expiration_month
-      request.set_param(:expiration_year, cc.expiration_year) if cc.expiration_year
-      request.set_param(:swipe, cc.swipe) if cc.swipe
-      request.set_param(:csc, cc.csc) if cc.csc
+      cc.set_request_data(request)
     end
 
     def add_optional_fields(request)
