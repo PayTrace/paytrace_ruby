@@ -129,6 +129,27 @@ module PayTrace
       create_transaction(args,TransactionTypes::SALE)
     end
 
+    # See http://help.paytrace.com/api-store-and-forward
+    # Processing a store & forward through the PayTrace API will request that the transaction is stored for future authorization for specified amount. Please note that the authorization of the store & forward may be scheduled by provided a StrFwdDate value or manually via the Virtual Terminal. *Note that swiped account numbers and CSC values are not stored. Only the card number and expiration dates are stored from the swipe.*
+    # All versions of store and forward may include the following parameters:
+    # * *:amount* -- the amount of the store and forward
+    # * *:optional* -- optional fields hash, kept inside the parameters
+    # The swiped card version takes the following parameters:
+    # * *:swipe* -- swipe data provided with the store and forward (in optional parameters hash)
+    # The key entered version takes the following parameters:
+    # * *:credit_card* -- additional credit card data
+    # The customer ID (token) version takes the following parameters:
+    # * *:customer_id* -- the customer ID (in optional parameters hash)
+    # * *:customer* -- a PayTrace::Customer object for additional customer details
+    # * *:csc* -- credit card security code (in optional parameters hash)
+    # * *:invoice* -- an internal invoice number (in optional parameters hash)
+    # * *:description* -- a description of the auth (in optional parameters hash)
+    # * *:tax_amount* -- the amount of tax on the auth (in optional parameters hash)
+    # * *:customer_reference_id* -- a customer reference ID (in optional parameters hash)
+    # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process auths or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(in optional parameters hash)
+    # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process auths or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (in optional parameters hash)
+    # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (in optional parameters hash)
+    # * *:store_forward_date* -- optional future date when the transaction should be authorized and settled. Only applicable if the TranxType is STR/FWD (in optional parameters hash)
     def self.store_forward(amount,credit_card,args={})
       args[:amount] = amount
       args[:credit_card] = credit_card

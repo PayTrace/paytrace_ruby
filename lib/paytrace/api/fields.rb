@@ -52,6 +52,7 @@ module PayTrace
         check_id:"CHECKID",
         start_date:"SDATE",
         end_date:"EDATE",
+        store_forward_date:"STRFWDDATE",
         #credit card
         card_number: "CC",
         expiration_year: "EXPYR",
