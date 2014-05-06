@@ -1,5 +1,6 @@
 module PayTrace
   module API
+    # An object representing an API response from sending a PayTrace::API::Request with a PayTrace::API::Gateway object
     class Response
       attr_reader :values, :errors
 

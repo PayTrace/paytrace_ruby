@@ -4,7 +4,9 @@ require 'paytrace/exceptions'
 
 module PayTrace
   module API
+    # Helper for sending requests
     class Gateway
+      # :nodoc:
       attr_accessor :connection
       @@debug = false
       @@last_request = nil
@@ -13,14 +15,17 @@ module PayTrace
       @@next_response = nil
       @@raise_exceptions = true
 
+      # Creates a new gateway object, optionally using a supplied connection object
       def initialize(connection = nil)
         @connection = connection || PayTrace.configuration.connection
       end
 
+      # Sets or clears a debug flag to enable testing
       def self.debug=(enable)
         @@debug = enable
       end 
 
+      # Clears debug data
       def self.reset_trace
         @@last_request = nil
         @@last_response = nil
@@ -28,26 +33,34 @@ module PayTrace
         @@next_response = nil
       end
 
+      # Returns the last request sent (as raw text)
       def self.last_request
         @@last_request
       end
 
+      # Returns the last response received (as raw text)
       def self.last_response
         @@last_response
       end
 
+      # Returns the last response object received
       def self.last_response_object
         @@last_response_object
       end
 
+      # Use this to set the raw text of the next response; only used when debug is true
       def self.next_response=(next_response)
         @@next_response = next_response
       end
 
+      # Sets or clears a flag to raise exceptions on receiving server errors
       def self.raise_exceptions=(raise_exceptions)
         @@raise_exceptions = raise_exceptions
       end
 
+      # Sends a request object
+      # Params:
+      # * *:multi_value_response_fields* -- response fields that may have multiple entries for the same key
       def send_request(request, multi_value_response_fields = [])
         @@last_request = request.to_parms_string if @@debug
         unless (@@debug && @@next_response)

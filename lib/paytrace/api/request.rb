@@ -1,8 +1,12 @@
 module PayTrace
   module API
+    # An object representing an API request to be sent using a PayTrace::API::Gateway object
     class Request
+      # :nodoc:
       attr_reader :params, :field_delim, :value_delim, :discretionary_data
+      # :doc:
 
+      # Initializes a new Request object
       def initialize
         @field_delim = "|"
         @multi_field_delim = "+"
@@ -18,6 +22,7 @@ module PayTrace
         @discretionary_data = {}
       end
 
+      # Returns the formatted URL that this request will send
       def to_parms_string()
         raw_request = @params.map do |k,items|
           items.map do |item|
@@ -34,28 +39,39 @@ module PayTrace
         raw_request
       end
 
-      def set_discretionary(k, v = nil)
-        if k.is_a?(Hash)
-          @discretionary_data = k
+      # Sets discretionary data keys and values
+      # * *:key* -- the name of the setting
+      # * *:value* -- the value of the setting
+      def set_discretionary(key, value = nil)
+        if key.is_a?(Hash)
+          @discretionary_data = key
         else
-          @discretionary_data[k] = v unless v.nil?
+          @discretionary_data[key] = value unless value.nil?
         end
       end
 
+      # :nodoc:
       def validate_param(k, v)
         raise PayTrace::Exceptions::ValidationError.new("Unknown field '#{k}'") unless PayTrace::API.fields.has_key?(k)
       end
+      # :doc:
 
-      def set_param(k, v)
-        validate_param(k, v)
+      # Sets a single request parameters
+      # * *:key* -- the name of the setting
+      # * *:value* -- the value of the setting
+      def set_param(key, value = nil)
+        validate_param(key, value)
 
-        unless v.nil?
-          @params[k] ||= []
+        unless value.nil?
+          @params[key] ||= []
 
-          @params[k] << v
+          @params[key] << value
         end
       end
 
+      # Sets multiple parameters with the same name using the custom delimiter
+      # * *:param_name* -- the name of the "top level" setting
+      # * *:items* -- a hash of "second level" settings
       def set_multivalue(param_name, items = {})
         result = (items.map do |k,v|
           validate_param(k, v)
@@ -67,6 +83,9 @@ module PayTrace
         result
       end
 
+      # Sets multiple parameters at once
+      # * *:keys* -- an array of key names to extract from the params hash
+      # * *:params* -- the parameters hash to be extracted from
       def set_params(keys, params)
         keys.each do |key|
           set_param(key, params[key])

@@ -1,5 +1,6 @@
 module PayTrace
   module API
+    # Friendly names for API methods and parameters
     def self.fields
       {
         amount: "AMOUNT",
