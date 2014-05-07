@@ -313,7 +313,6 @@ module PayTrace
     def self.settle_transaction(params = {})
       request = PayTrace::API::Request.new
       request.set_param(:method, SETTLE_TRANSACTION_METHOD)
-      request.set_params([:recur_id, :customer_id], params)
       gateway = PayTrace::API::Gateway.new
       gateway.send_request(request)      
     end

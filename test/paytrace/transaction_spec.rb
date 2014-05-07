@@ -58,26 +58,6 @@ describe PayTrace::Transaction do
     PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~AdjustAmount|TRANXID~1234|AMOUNT~9.87|"
   end
 
-  it "can settle a transaction by recurrence ID" do
-    PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"
-    params = {
-      # UN, PSWD, TERMS, METHOD, RECURID
-      recur_id: 12345
-    }
-    result = PayTrace::Transaction.settle_transaction(params)
-    PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~SettleTranx|RECURID~12345|"
-  end
-
-  it "can settle a transaction by customer ID" do
-    PayTrace::API::Gateway.next_response = "SHIPPINGRECORD~SHIPPINGCOMPANY=USPS+SHIPPINGMETHOD=STANDARD POST+SHIPPINGRATE=12.72|"
-    params = {
-      # UN, PSWD, TERMS, METHOD, RECURID
-      customer_id: 12346
-    }
-    result = PayTrace::Transaction.settle_transaction(params)
-    PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~SettleTranx|CUSTID~12346|"
-  end
-
   describe "create sales transactions" do
     it "can create a Payment Authorization" do
       t = PayTrace::Transaction.authorization(
