@@ -173,6 +173,7 @@ module PayTrace
       t
     end
 
+    # Not meant to be called directly; use static helper methods instead
     def initialize(params = {})
       @amount = params[:amount]
       @credit_card = params[:credit_card]
@@ -182,6 +183,7 @@ module PayTrace
       include_optional(params[:optional]) if params[:optional]
     end
 
+    # Internal helper method
     def set_request(request)
       add_credit_card(request, credit_card) if credit_card
       if customer.is_a?(PayTrace::Customer)
@@ -198,7 +200,17 @@ module PayTrace
     end
     # :doc:
 
-
+    # See http://help.paytrace.com/api-export-transaction-information
+    # Exports transaction information.
+    # Parameters hash:
+    # * *:transaction_id* -- a specific transaction ID to export, _or_
+    # * *:start_date* -- a start date for a range of transactions to export
+    # * *:end_date* -- an end date for a range of transactions to export
+    # * *:transaction_type* -- the type of transaction to export (optional)
+    # * *:customer_id* -- a specific customer ID to export transactions for (optional)
+    # * *:transaction_user* -- the user who created the transaction (optional)
+    # * *:return_bin* -- if set to 'Y', card numbers from ExportTranx and ExportCustomers requests will include the first 6 and last 4 digits of the card number (optional)
+    # * *:search_text* -- text that will be searched to narrow down transaction and check results for ExportTranx and ExportCheck requests (optional)
     def self.export(params = {})
       request = PayTrace::API::Request.new
       request.set_param(:method, EXPORT_TRANSACTIONS_METHOD)
@@ -220,6 +232,14 @@ module PayTrace
       end
     end
 
+    # See http://help.paytrace.com/api-signature-capture-image
+    # Attach Signature Request -- allows attaching a signature image to a transactions
+    # Parameters hash includes:
+    # * *:transaction_id* -- the transaction ID to attach a signature image
+    # * *:image_data* -- the Base64 encoded image data
+    # * *:image_type* -- the type of image attached (e.g. "PNG", "JPG", etc.)
+    # * *:image_file* -- the filename of an image file to load and Base64 encode
+    # _Note:_ only include the :image_data _or_ :image_file parameters. Also note that (due to technical limitations) if you supply the :image_file parameter, you must still supply the :image_type parameter.
     def self.attach_signature(params = {})
       request = PayTrace::API::Request.new
       request.set_param(:method, ATTACH_SIGNATURE_METHOD)
@@ -236,10 +256,27 @@ module PayTrace
       gateway.send_request(request)
     end
 
+    # See http://help.paytrace.com/api-calculate-shipping-rates
+    # Calculates the estimaged shipping cost to send a package of a given weight from a source zip to a destination.
+    # Returns an array of potential shippers, such as USPS, Fedex, etc., and the estimated cost to ship the package
+    # Params hash includes:
+    # * *:source_zip* -- the zip code the package will be shipped from
+    # * *:source_state* -- the state the package will be shipped from
+    # * *:shipping_postal_code* -- the postal (zip) code the package will be shipped to
+    # * *:shipping_state* -- the state the package will be shipped to
+    # * *:shipping_weight* -- the weight of the package
+    # * *:shippers* -- string of shipping service providers you would like shipping quotes from. String may contain USPS, FEDEX, or UPS, separated by commas, in any order or combination
     def self.calculate_shipping(params = {})
       request = PayTrace::API::Request.new
       request.set_param(:method, CALCULATE_SHIPPING_COST)
-      request.set_params(params.keys, params)
+      request.set_params([
+        :source_zip,
+        :source_state,
+        :shipping_postal_code,
+        :shipping_state,
+        :shipping_weight,
+        :shippers       
+      ], params)
 
       gateway = PayTrace::API::Gateway.new
       response = gateway.send_request(request, [CALCULATE_SHIPPING_COST_RESPONSE])      
@@ -248,6 +285,51 @@ module PayTrace
       end
     end
 
+    # See http://help.paytrace.com/api-adding-level-3-data-to-a-visa-sale
+    #
+    # Level 3 data is additional information that may be applied to enrich a transaction’s reporting value to both the merchant and the customers. Generally, merchant service providers offer reduced or qualified pricing for transactions that are processed with Level 3 data.
+    # 
+    # Level 3 data may be added to any Visa or MasterCard sale that is approved and pending settlement. Some level 3 data, specifically enhanced data such as Invoice and Customer Reference ID, may overlap with data provided with the base transaction. Enhanced data, when applied, will always overwrite such data that may already be stored with the transaction.
+    # 
+    # Level 3 data consists of enhanced data and 1 or more line item records. This information is intended to describe the details of the transaction and the products or services rendered. However, defaults may be applied in the event that some data is missing or unknown. So, all required fields must be present, even if their values are empty. Empty values will be overwritten with PayTrace defaults.
+    # 
+    # Please note that Visa and MasterCard each have their own requirements for level 3 data, so your application should be able to determine if the transaction being updated in a Visa or a MasterCard before formatting and sending the request. All Visa account numbers begin with “4” and contain 16 digits. All MasterCard account numbers begin with “5” and also contain 16 digits.
+    #
+    # Required parameters (in arguments hash): 
+    #
+    # * *:transaction_id* -- the transaction ID to which to add this data (required)
+    #
+    # Optional parameters (in arguments hash): 
+    #
+    # * *:invoice* -- invoice is the identifier for this transaction in your accounting or inventory management system
+    # * *:customer_reference_id* -- customer reference ID is only used for transactions that are identified as corporate or purchasing credit cards. The customer reference ID is an identifier that your customer may ask you to provide in order to reference the transaction to their credit card statement
+    # * *:tax_amount* -- portion of the original transaction amount that is tax. Must be a number that reports the tax amount of the transaction. Use -1 if the transaction is tax exempt
+    # * *:national_tax* -- portion of the original transaction amount that is national tax. Generally only applicable to orders shipped to countries with a national or value added tax
+    # * *:merchant_tax_id* -- merchant’s tax identifier used for tax reporting purposes
+    # * *:customer_tax_id* -- customer’s tax identifier used for tax reporting purposes
+    # * *:ccode* -- commodity code that generally applies to each product included in the order. Commodity codes are generally assigned by your merchant service provider
+    # * *:discount* -- discount value should represent the amount discounted from the original transaction amount 
+    # * *:freight* -- freight value should represent the portion of the transaction amount that was generated from shipping costs
+    # * *:duty* -- duty should represent any costs associated with shipping through a country’s customs
+    # * *:source_zip* -- zip code that the package will be sent from
+    # * *:shipping_postal_code* -- zip code where the product is delivered
+    # * *:shipping_country* -- country where the product is delivered
+    # * *:add_tax* -- any tax generated from freight or other services associated with the transaction
+    # * *:add_tax_rate* -- rate at which additional tax was assessed
+    # * *:line_items* -- see below
+    #
+    # The params may include a :line_items key, which should be an array of zero or more line item detail items. Each detail item is itself a parameter hash, containing any or none of the following:
+    #
+    # * *:ccode_li* -- the complete commodity code unique to the product referenced in this specific line item record. Commodity codes are generally assigned by your merchant service provider
+    # * *:product_id* -- your unique identifier for the product
+    # * *:description* -- optional text describing the transaction, products, customers, or other attributes of the transaction
+    # * *:quantity* -- item count of the product in this order
+    # * *:measure* -- unit of measure applied to the product and its quantity. For example, LBS/LITERS, OUNCES, etc.
+    # * *:unit_cost* -- product amount per quantity
+    # * *:add_tax_li* -- additional tax amount applied to the transaction applicable to this line item record
+    # * *:add_tax_rate_li* -- rate at which additional tax was calculated in reference to this specific line item record
+    # * *:discount_li* -- discount amount applied to the transaction amount in reference to this line item record
+    # * *:amount_li* -- total amount included in the transaction amount generated from this line item record
     def self.add_level_three_visa(params = {})
       line_items = params.delete(:line_items) || []
       request = PayTrace::API::Request.new
@@ -281,6 +363,53 @@ module PayTrace
       end
     end
 
+    # See http://help.paytrace.com/api-adding-level-3-data-to-a-mastercard-sale
+    #
+    # Level 3 data is additional information that may be applied to enrich a transaction’s reporting value to both the merchant and the customers. Generally, merchant service providers offer reduced or qualified pricing for transactions that are processed with Level 3 data.
+    # 
+    # Level 3 data may be added to any Visa or MasterCard sale that is approved and pending settlement. Some level 3 data, specifically enhanced data such as Invoice and Customer Reference ID, may overlap with data provided with the base transaction. Enhanced data, when applied, will always overwrite such data that may already be stored with the transaction.
+    # 
+    # Level 3 data consists of enhanced data and 1 or more line item records. This information is intended to describe the details of the transaction and the products or services rendered. However, defaults may be applied in the event that some data is missing or unknown. So, all required fields must be present, even if their values are empty. Empty values will be overwritten with PayTrace defaults.
+    # 
+    # Please note that Visa and MasterCard each have their own requirements for level 3 data, so your application should be able to determine if the transaction being updated in a Visa or a MasterCard before formatting and sending the request. All Visa account numbers begin with “4” and contain 16 digits. All MasterCard account numbers begin with “5” and also contain 16 digits.
+    #
+    # Required parameters (in arguments hash): 
+    #
+    # * *:transaction_id* -- the transaction ID to which to add this data (required)
+    #
+    # Optional parameters (in arguments hash): 
+    #
+    # * *:invoice* -- invoice is the identifier for this transaction in your accounting or inventory management system
+    # * *:customer_reference_id* -- customer reference ID is only used for transactions that are identified as corporate or purchasing credit cards. The customer reference ID is an identifier that your customer may ask you to provide in order to reference the transaction to their credit card statement
+    # * *:tax_amount* -- portion of the original transaction amount that is tax. Must be a number that reports the tax amount of the transaction. Use -1 if the transaction is tax exempt
+    # * *:national_tax* -- portion of the original transaction amount that is national tax. Generally only applicable to orders shipped to countries with a national or value added tax
+    # * *:ccode* -- commodity code that generally applies to each product included in the order. Commodity codes are generally assigned by your merchant service provider
+    # * *:freight* -- freight value should represent the portion of the transaction amount that was generated from shipping costs
+    # * *:duty* -- duty should represent any costs associated with shipping through a country’s customs
+    # * *:source_zip* -- zip code that the package will be sent from
+    # * *:shipping_postal_code* -- zip code where the product is delivered
+    # * *:shipping_country* -- country where the product is delivered
+    # * *:add_tax* -- any tax generated from freight or other services associated with the transaction
+    # * *:additional_tax_included* -- a flag used to indicate where additional tax was included in this transaction. Set to Y if additional tax was included and N if no additional tax was applied
+    # * *:line_items* -- see below
+    #
+    # The params may include a :line_items key, which should be an array of zero or more line item detail items. Each detail item is itself a parameter hash, containing any or none of the following:
+    #
+    # * *:product_id* -- your unique identifier for the product
+    # * *:description* -- optional text describing the transaction, products, customers, or other attributes of the transaction
+    # * *:quantity* -- item count of the product in this order
+    # * *:measure* -- unit of measure applied to the product and its quantity. For example, LBS/LITERS, OUNCES, etc.
+    # * *:merchant_tax_id* -- merchant’s tax identifier used for tax reporting purposes
+    # * *:unit_cost* -- product amount per quantity
+    # * *:additional_tax_included_li* -- descriptor used to describe additional tax that is applied to the transaction amount in reference to this specific line item
+    # * *:add_tax_li* -- additional tax amount applied to the transaction applicable to this line item record
+    # * *:add_tax_rate_li* -- rate at which additional tax was calculated in reference to this specific line item record
+    # * *:amount_li* -- total amount included in the transaction amount generated from this line item record
+    # * *:discount_included* -- flag used to indicate whether discount was applied to the transaction amount in reference to this specific line item record
+    # * *:line_item_is_gross* -- flag used to indicate whether the line item amount is net or gross to specify whether the line item amount includes tax. Possible values are Y (includes tax) and N (does not include tax)
+    # * *:is_debit_or_credit* -- flag used to determine whether the line item amount was a debit or a credit to the customer. Generally always a debit or a factor that increased the transaction amount. Possible values are D (net is a debit) and C (net is a credit)
+    # * *:discount_li* -- discount amount applied to the transaction amount in reference to this line item record
+    # * *:discount_rate* -- rate at which discount was applied to the transaction in reference to this specific line item
     def self.add_level_three_mc(params = {})
       line_items = params.delete(:line_items) || []
       request = PayTrace::API::Request.new
@@ -310,6 +439,11 @@ module PayTrace
       end
     end
 
+    # See http://help.paytrace.com/api-settling-transactions
+    #
+    # Transactions processed through merchant accounts that are set up on the TSYS/Vital network or other terminal-based networks may initiate the settlement of batches through the PayTrace API.
+    # 
+    # No parameters are required.
     def self.settle_transaction(params = {})
       request = PayTrace::API::Request.new
       request.set_param(:method, SETTLE_TRANSACTION_METHOD)
@@ -317,6 +451,21 @@ module PayTrace
       gateway.send_request(request)      
     end
 
+    # See http://help.paytrace.com/api-adjusting-transaction-amounts
+    #
+    # Transactions processed through merchant accounts that are set up on the TSYS/Vital network or other terminal-based networks may adjust transaction amounts to any amount that is less than or equal to the original transaction amount and greater than zero. A transaction cannot be adjusted to more than 30% above its authorized amount. Amounts may be adjusted for the following transaction conditions:
+    #
+    # * Approved Sale that is not yet settled
+    # * Forced Sale that is not yet settled
+    # * Authorization that is approved and not yet settled
+    # * Refund that is not yet settled
+    #
+    # Please note that amounts for cash advance transaction may also not be adjusted.
+    #
+    # The parameters hash includes the following required parameters:
+    #
+    # *:transaction_id* -- a unique identifier for each transaction in the PayTrace system. This value is returned in the TRANSACTIONID parameter of an API response and will consequently be included in requests to email receipts, void transactions, add level 3 data, etc
+    # *:amount* -- dollar amount of the transaction. Must be a positive number up to two decimal places
     def self.adjust_amount(params = {})
       request = PayTrace::API::Request.new
       request.set_param(:method, ADJUST_AMOUNT_METHOD)
@@ -326,6 +475,7 @@ module PayTrace
       gateway.send_request(request)      
     end
 
+    # :nodoc:
     def add_transaction_info(request)
       request.set_param(:transaction_type, type)
       request.set_param(:method, TRANSACTION_METHOD)
