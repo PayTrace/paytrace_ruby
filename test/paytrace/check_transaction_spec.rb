@@ -128,7 +128,7 @@ describe PayTrace::CheckTransaction do
       result = PayTrace::CheckTransaction.process_hold(params)
 
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::CheckTransaction::PROCESS_SALE_METHOD) +
-        "AMOUNT~17.29|DDA~1234567|TR~1234568|CHECKTYPE~Hold|hair_color~red|"
+        "CHECKTYPE~Hold|AMOUNT~17.29|DDA~1234567|TR~1234568|hair_color~red|"
     end
 
     describe "refund transactions" do
@@ -141,7 +141,7 @@ describe PayTrace::CheckTransaction do
         result = PayTrace::CheckTransaction.process_refund(params)
 
         PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::CheckTransaction::PROCESS_SALE_METHOD) +
-          "CHECKID~12345678|CHECKTYPE~Refund|"
+          "CHECKTYPE~Refund|CHECKID~12345678|"
       end
     end
 
