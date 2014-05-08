@@ -12,6 +12,3 @@ require 'paytrace/exceptions'
 require 'paytrace/recurring_transaction'
 require 'paytrace/check_transaction'
 require 'paytrace/batch_operations'
-
-module PayTrace
-end
