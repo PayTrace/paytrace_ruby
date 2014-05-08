@@ -225,10 +225,10 @@ module PayTrace
         :search_text], params)
 
       gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request, [EXPORT_TRANSACTIONS_RESPONSE])
+      response = gateway.send_request(request)
 
       unless response.has_errors?
-        response.values[EXPORT_TRANSACTIONS_RESPONSE]
+        response.parse_records(EXPORT_TRANSACTIONS_RESPONSE)
       end
     end
 
@@ -279,9 +279,9 @@ module PayTrace
       ], params)
 
       gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request, [CALCULATE_SHIPPING_COST_RESPONSE])      
+      response = gateway.send_request(request)      
       unless response.has_errors?
-        response.values[CALCULATE_SHIPPING_COST_RESPONSE]
+        response.parse_records(CALCULATE_SHIPPING_COST_RESPONSE)
       end
     end
 

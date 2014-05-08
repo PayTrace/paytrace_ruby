@@ -61,12 +61,12 @@ module PayTrace
         if key == :discretionary_data
           value.is_a?(Hash) || value.nil? # any discretionary data that's a hash or nil should be passed
         else
-          PayTrace::API.fields.has_key?(key)
+          PayTrace::API.fields.has_key?(key) || value.nil? || value.respond_to?(:set_request)
         end
       end
 
       def validate_param!(k, v)
-        raise PayTrace::Exceptions::ValidationError.new("Unknown field '#{k}'") unless valid_param?(k,v)
+        raise PayTrace::Exceptions::ValidationError.new("Unknown field '#{k}' (value: #{v})") unless valid_param?(k,v)
       end
       # :doc:
 

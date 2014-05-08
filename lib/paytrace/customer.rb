@@ -29,11 +29,7 @@ module PayTrace
     # Sends a request to the server to delete a given customer. No parameters; the customer ID is assumed to be set on
     # this object.
     def delete
-      request = PayTrace::API::Request.new
-      request.set_param(:method, DELETE_CUSTOMER)
-      request.set_param(:customer_id, @customer_id)
-      gateway = PayTrace::API::Gateway.new
-      gateway.send_request(request)
+      PayTrace::API::Gateway.send_request(DELETE_CUSTOMER, [:customer_id], self)
     end
 
     # See http://help.paytrace.com/api-exporting-customer-profiles for more information.
@@ -43,34 +39,16 @@ module PayTrace
     # * *:transaction_user* -- the user name of the PayTrace user who created or processed the customer or transaction you are trying to export
     # * *:return_bin* -- if set to "Y", card numbers from ExportTranx and ExportCustomers requests will include the first 6 and last 4 digits of the card number
     def self.export(params = {})
-      # CUSTID, EMAIL, USER, RETURNBIN
-      request = PayTrace::API::Request.new
-      request.set_param(:method, EXPORT_CUSTOMERS)
-      request.set_param(:customer_id, params[:customer_id])
-      request.set_param(:email, params[:email])
-      request.set_param(:transaction_user, params[:transaction_user])
-      request.set_param(:return_bin, params[:return_bin])
-      gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request, [EXPORT_CUSTOMERS_RESPONSE])      
-
-      unless response.has_errors?
-        response.values[EXPORT_CUSTOMERS_RESPONSE]
-      end
+      response = PayTrace::API::Gateway.send_request(EXPORT_CUSTOMERS, [:customer_id, :email, :transaction_user, :return_bin], params)
+      response.parse_records(EXPORT_CUSTOMERS_RESPONSE)
     end
 
     # See http://help.paytrace.com/api-exporting-inactive-customers
     # Exports the profiles of customers who have been inactive for a certain length of time. Params:
     # *:days_inactive* -- the number of days of inactivity to search for
     def self.export_inactive(params = {})
-      request = PayTrace::API::Request.new
-      request.set_param(:method, EXPORT_INACTIVE_CUSTOMERS)
-      request.set_param(:days_inactive, params[:days_inactive])
-      gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request, [EXPORT_CUSTOMERS_RESPONSE])
-
-      unless response.has_errors?
-        response.values[EXPORT_CUSTOMERS_RESPONSE]
-      end
+      response = PayTrace::API::Gateway.send_request(EXPORT_INACTIVE_CUSTOMERS, [:days_inactive], params)
+      response.parse_records(EXPORT_CUSTOMERS_RESPONSE)
     end
 
     # See http://help.paytrace.com/api-delete-customer-profile
@@ -140,14 +118,12 @@ module PayTrace
         [:customer_fax, :fax],
         :customer_password,
         :account_number,
-        :routing_number
+        :routing_number,
+        :billing_address,
+        :shipping_address,
+        :credit_card,
+        :discretionary_data
         ], params)
-
-      params[:billing_address].set_request(request) if params[:billing_address]
-      params[:shipping_address].set_request(request) if params[:shipping_address]
-      params[:credit_card].set_request_data(request) if params[:credit_card]
-
-      request.set_discretionary(params[:discretionary_data])
     end
   end
 end

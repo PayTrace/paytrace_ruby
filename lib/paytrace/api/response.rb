@@ -5,18 +5,13 @@ module PayTrace
       attr_reader :values, :errors
 
       # Called by the PayTrace::API::Gateway object to initialize a response
-      def initialize(response_string, multi_value_fields = [])
+      def initialize(response_string)
         @field_delim = "|"
         @value_delim = "~"
         @multi_value_delim = "+"
         @values = {}
         @errors = {}
-        parse_response(response_string, multi_value_fields)
-      end
-
-      # Returns the response code(s) received
-      def response_code
-        get_response
+        parse_response(response_string)
       end
 
       # Returns true if the response contained any error codes
@@ -24,8 +19,18 @@ module PayTrace
         @errors.length > 0
       end
 
+      def parse_records(field_name)
+        records = []
+
+        [@values[field_name]].flatten.each do |raw_record|
+          records << Hash[raw_record.split(@multi_value_delim).map {|pair| pair.split('=')}]
+        end
+
+        records
+      end
+
       # Called by the initialize method
-      def parse_response(response_string, multi_value_fields = [])
+      def parse_response(response_string)
 
         if (response_string.include? "ERROR")
            return parse_errors(response_string)
@@ -34,9 +39,9 @@ module PayTrace
         pairs = response_string.split(@field_delim)
         pairs.each do |p|
           k,v = p.split(@value_delim)
-          if multi_value_fields.include?(k)
-            @values[k] ||= []
-            @values[k] << Hash[v.split(@multi_value_delim).map {|pair| pair.split('=')}]
+          if @values.has_key?(k)
+            @values[k] = [@values[k]] unless @values[k].is_a?(Array)
+            @values[k] << v
           else
             @values[k] = v
           end
