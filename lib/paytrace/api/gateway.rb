@@ -71,8 +71,7 @@ module PayTrace
         yield request if block_given?
 
         gateway = Gateway.new
-        response = gateway.send_request(request)
-        response.get_response()
+        gateway.send_request(request)
       end
 
       # Sends a request object
