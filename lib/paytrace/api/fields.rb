@@ -110,6 +110,8 @@ module PayTrace
         source_state: "SOURCESTATE",
         shipping_weight: "WEIGHT",
         shippers: "SHIPPERS",
+        # batch opterations
+        batch_number: "BATCHNUMBER",
         # test flag
         test_flag: "TEST"
       }
