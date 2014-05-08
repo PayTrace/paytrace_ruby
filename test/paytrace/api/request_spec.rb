@@ -40,6 +40,14 @@ describe PayTrace::API::Request do
     request.set_param(:billing_name, mock)
   end
 
+  it "correctly sets a value named :discretionary_data as discretionary data" do
+    r = PayTrace::API::Request.new
+    r.set_param(:discretionary_data, {hair_color: 'red'})
+
+    r.params[:discretionary_data].must_equal nil
+    r.discretionary_data[:hair_color].must_equal 'red'
+  end
+
   it "can bulk set params" do
     params = {billing_name: "Fred Jones", billing_postal_code: 98133}
     r = PayTrace::API::Request.new

@@ -57,8 +57,16 @@ module PayTrace
       end
 
       # :nodoc:
-      def validate_param(k, v)
-        raise PayTrace::Exceptions::ValidationError.new("Unknown field '#{k}'") unless PayTrace::API.fields.has_key?(k)
+      def valid_param?(key, value)
+        if key == :discretionary_data
+          value.is_a?(Hash) || value.nil? # any discretionary data that's a hash or nil should be passed
+        else
+          PayTrace::API.fields.has_key?(key)
+        end
+      end
+
+      def validate_param!(k, v)
+        raise PayTrace::Exceptions::ValidationError.new("Unknown field '#{k}'") unless valid_param?(k,v)
       end
       # :doc:
 
@@ -67,7 +75,7 @@ module PayTrace
       # * *items* -- a hash of "second level" settings
       def set_multivalue(param_name, items = {})
         result = (items.map do |k,v|
-          validate_param(k, v)
+          validate_param!(k, v)
           "#{PayTrace::API.fields[k]}#{@multi_value_delim}#{v}"
         end.join(@multi_field_delim))
 
@@ -80,12 +88,14 @@ module PayTrace
       # * *key* -- the name of the setting
       # * *value* -- the value of the setting
       #
-      # _Note:_ you can pass in an object that responds to *set_request* as the *value*, and this will invoke *set_request* on it, with this request object as the parameter.
+      # _Note:_ you can pass in an object that responds to *set_request* as the *value*, and this will invoke *set_request* on it, with this request object as the parameter. Also, any value named *:discretionary_data* that is set will be set in the discretionary hash, not the regular params hash.
       def set_param(key, value = nil)
-        validate_param(key, value)
+        validate_param!(key, value)
 
         unless value.nil?
-          if value.respond_to?(:set_request)
+          if key == :discretionary_data
+            set_discretionary(value)
+          elsif value.respond_to?(:set_request)
             value.set_request(self)
           else
             @params[key] ||= []
