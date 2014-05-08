@@ -483,7 +483,7 @@ module PayTrace
     end
 
     def add_credit_card(request, cc)
-      cc.set_request_data(request)
+      cc.set_request(request)
     end
 
     def add_optional_fields(request)

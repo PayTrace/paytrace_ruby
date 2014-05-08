@@ -19,11 +19,6 @@ module PayTrace
     end
 
     # :nodoc:
-    # Internal helper method; not meant to be called directly.
-    def set_request_data(request)
-      set_request(request)
-    end
-
     def set_request(request)
       request.set_params([:card_number, :expiration_month, :expiration_year, :swipe, :csc], self)
     end
