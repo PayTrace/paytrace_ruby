@@ -92,22 +92,20 @@ module PayTrace
       def set_param(key, value = nil)
         validate_param!(key, value)
 
-        unless value.nil?
-          if key == :discretionary_data
-            set_discretionary(value)
-          elsif value.respond_to?(:set_request)
-            value.set_request(self)
-          else
-            @params[key] ||= []
+        if value.respond_to?(:set_request)
+          value.set_request(self)
+        elsif key == :discretionary_data
+          set_discretionary(value)
+        elsif value != nil
+          @params[key] ||= []
 
-            @params[key] << value
-          end
+          @params[key] << value
         end
       end
 
       # Sets multiple parameters at once
       # * *:keys* -- an array of key names to extract from the params hash
-      # * *:params* -- the parameters hash to be extracted from
+      # * *:params* -- the hash or object to fetch the parameters from
       #
       # _Note:_ the values in *:keys* can also include arrays of two values (techincally, a tuple). The sub-array contains the name of the field that will be used in the request, and the name of the field in the params. This allows more succinct parameter names; e.g. *:address* instead of *:billing_address*. Example:
       #
@@ -120,14 +118,22 @@ module PayTrace
       #       [:billing_address, :address]
       #     ], params) 
       def set_params(keys, params)
+        if params.is_a?(Hash)
+          accessor = :[]
+        else
+          accessor = :send
+        end
+
         keys.each do |key|
           if key.is_a?(Array)
             request_variable = key[0]
             arg_name = key[1]
-            set_param(request_variable, params[arg_name])
           else
-            set_param(key, params[key])
+            request_variable = arg_name = key
           end
+
+          value = params.send(accessor, arg_name)
+          set_param(request_variable, value)
         end
       end
     end

@@ -64,6 +64,18 @@ describe PayTrace::API::Request do
     r.params[:billing_postal_code].must_equal [98134]  
   end
 
+  it "attempts to fetch parameter values from an object if supplied" do
+    mock = MiniTest::Mock.new
+
+    mock.expect(:is_a?, false, [Hash])
+    mock.expect(:send, "1234 Fake Ave.", [:send, :billing_address])
+
+    r = PayTrace::API::Request.new
+    r.set_params([:billing_address], mock)
+    mock.verify
+    r.params[:billing_address].must_equal ["1234 Fake Ave."]
+  end
+
   it "raises a validation exception for unknown fields" do
     r = PayTrace::API::Request.new
 
