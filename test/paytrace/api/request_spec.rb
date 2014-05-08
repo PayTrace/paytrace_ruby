@@ -30,6 +30,16 @@ describe PayTrace::API::Request do
     r.params[:billing_name].must_equal ["Fred Jones"]
   end
 
+  it "invokes set_request on values sent to set_param" do
+    request = PayTrace::API::Request.new
+
+    mock = MiniTest::Mock.new
+    mock.expect(:nil?, false)
+    mock.expect(:set_request, nil, [request])
+
+    request.set_param(:billing_name, mock)
+  end
+
   it "can bulk set params" do
     params = {billing_name: "Fred Jones", billing_postal_code: 98133}
     r = PayTrace::API::Request.new

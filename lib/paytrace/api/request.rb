@@ -62,22 +62,9 @@ module PayTrace
       end
       # :doc:
 
-      # Sets a single request parameters
-      # * *:key* -- the name of the setting
-      # * *:value* -- the value of the setting
-      def set_param(key, value = nil)
-        validate_param(key, value)
-
-        unless value.nil?
-          @params[key] ||= []
-
-          @params[key] << value
-        end
-      end
-
       # Sets multiple parameters with the same name using the custom delimiter
-      # * *:param_name* -- the name of the "top level" setting
-      # * *:items* -- a hash of "second level" settings
+      # * *param_name* -- the name of the "top level" setting
+      # * *items* -- a hash of "second level" settings
       def set_multivalue(param_name, items = {})
         result = (items.map do |k,v|
           validate_param(k, v)
@@ -87,6 +74,25 @@ module PayTrace
         set_param(param_name, result)
 
         result
+      end
+
+      # Sets a single request parameters
+      # * *key* -- the name of the setting
+      # * *value* -- the value of the setting
+      #
+      # _Note:_ you can pass in an object that responds to *set_request* as the *value*, and this will invoke *set_request* on it, with this request object as the parameter.
+      def set_param(key, value = nil)
+        validate_param(key, value)
+
+        unless value.nil?
+          if value.respond_to?(:set_request)
+            value.set_request(self)
+          else
+            @params[key] ||= []
+
+            @params[key] << value
+          end
+        end
       end
 
       # Sets multiple parameters at once
