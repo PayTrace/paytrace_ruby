@@ -42,10 +42,16 @@ module PayTrace
       # Sets discretionary data keys and values
       # * *:key* -- the name of the setting
       # * *:value* -- the value of the setting
+      # 
+      # _Note:_ you can bulk-set discretionary data by simply passing in a hash as the "key"
       def set_discretionary(key, value = nil)
         if key.is_a?(Hash)
-          @discretionary_data = key
-        else
+          ddata_hash = key
+          ddata_hash.keys.each do |inner_key|
+            inner_value = ddata_hash[inner_key]
+            @discretionary_data[inner_key] = inner_value unless inner_value.nil?
+          end
+        elsif key.is_a?(Symbol)
           @discretionary_data[key] = value unless value.nil?
         end
       end
@@ -86,6 +92,17 @@ module PayTrace
       # Sets multiple parameters at once
       # * *:keys* -- an array of key names to extract from the params hash
       # * *:params* -- the parameters hash to be extracted from
+      #
+      # _Note:_ the values in *:keys* can also include arrays of two values (techincally, a tuple). The sub-array contains the name of the field that will be used in the request, and the name of the field in the params. This allows more succinct parameter names; e.g. *:address* instead of *:billing_address*. Example:
+      #
+      #   #
+      #   # note the nested array; this will send the field :billing_address,
+      #   # but uses the argument :address as the argument name
+      #   #
+      #   set_params([
+      #       :foo,
+      #       [:billing_address, :address]
+      #     ], params) 
       def set_params(keys, params)
         keys.each do |key|
           if key.is_a?(Array)

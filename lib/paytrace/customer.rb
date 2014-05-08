@@ -131,28 +131,23 @@ module PayTrace
     # Internal helper method; not meant to be called directly.
     def set_request_data(params, request = nil)
       request ||= PayTrace::API::Request.new
-      request.set_param(:customer_id, params[:customer_id])
-      request.set_param(:new_customer_id, params[:new_customer_id])
-      request.set_param(:transaction_id, params[:transaction_id])
+      request.set_params([
+        :customer_id,
+        :new_customer_id,
+        :transaction_id,
+        :email,
+        [:customer_phone, :phone],
+        [:customer_fax, :fax],
+        :customer_password,
+        :account_number,
+        :routing_number
+        ], params)
 
       params[:billing_address].set_request(request) if params[:billing_address]
       params[:shipping_address].set_request(request) if params[:shipping_address]
+      params[:credit_card].set_request_data(request) if params[:credit_card]
 
-      if params[:credit_card]
-        params[:credit_card].set_request_data(request)
-      end
-
-      request.set_param(:email, params[:email])
-      request.set_param(:customer_phone, params[:phone]) 
-      request.set_param(:customer_fax, params[:fax]) 
-      request.set_param(:customer_password, params[:customer_password])
-      request.set_param(:account_number, params[:account_number])
-      request.set_param(:routing_number, params[:routing_number])
-      if params[:discretionary_data] 
-        params[:discretionary_data].keys.each do |k|
-          request.set_discretionary(k, params[:discretionary_data][k])
-        end
-      end
+      request.set_discretionary(params[:discretionary_data])
     end
   end
 end
