@@ -25,5 +25,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "mocha", "~> 1.0"
   spec.add_development_dependency "guard", '~> 0'
   spec.add_development_dependency "guard-minitest", '~> 0'
-  spec.add_development_dependency "ruby_gntp"
+  spec.add_development_dependency "ruby_gntp", '~> 0'
 end
