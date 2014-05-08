@@ -22,11 +22,7 @@ module PayTrace
     # Internal helper method; not meant to be called directly.
     def set_request_data(request = nil)
       request ||= PayTrace::API::Request.new
-      request.set_param(:card_number, card_number) if card_number
-      request.set_param(:expiration_month, expiration_month) if expiration_month
-      request.set_param(:expiration_year, expiration_year) if expiration_year
-      request.set_param(:swipe, swipe) if swipe
-      request.set_param(:csc, csc) if csc
+      request.set_params([:card_number, :expiration_month, :expiration_year, :swipe, :csc], self)
     end
   end
 end
