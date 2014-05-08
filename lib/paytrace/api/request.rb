@@ -88,7 +88,13 @@ module PayTrace
       # * *:params* -- the parameters hash to be extracted from
       def set_params(keys, params)
         keys.each do |key|
-          set_param(key, params[key])
+          if key.is_a?(Array)
+            request_variable = key[0]
+            arg_name = key[1]
+            set_param(request_variable, params[arg_name])
+          else
+            set_param(key, params[key])
+          end
         end
       end
     end

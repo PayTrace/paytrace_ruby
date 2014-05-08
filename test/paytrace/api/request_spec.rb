@@ -38,6 +38,14 @@ describe PayTrace::API::Request do
     r.params[:billing_postal_code].must_equal [98133]
   end
 
+  it "can alias parameters in set_params" do
+    params = {name: "Ron Jones", postal_code: 98134}
+    r = PayTrace::API::Request.new
+    r.set_params([[:billing_name, :name], [:billing_postal_code, :postal_code]], params)
+    r.params[:billing_name].must_equal ["Ron Jones"]
+    r.params[:billing_postal_code].must_equal [98134]  
+  end
+
   it "raises a validation exception for unknown fields" do
     r = PayTrace::API::Request.new
 
