@@ -58,6 +58,23 @@ module PayTrace
         @@raise_exceptions = raise_exceptions
       end
 
+      # Helper method to abstract away a common use pattern. Creates a request object, sets parameters, creates a gateway object, sends the request, and returns the response.
+      #
+      # Arguments:
+      #
+      # * *param_names* -- the array of parameter names to be set from *arguments*
+      # * *arguments* -- the arguments to be set in the request
+      def self.send_request(method, param_names = nil, arguments = nil)
+        request = Request.new
+        request.set_param(:method, method)
+        request.set_params(param_names, arguments) if param_names && arguments
+        yield request if block_given?
+
+        gateway = Gateway.new
+        response = gateway.send_request(request)
+        response.get_response()
+      end
+
       # Sends a request object
       # Params:
       # * *:multi_value_response_fields* -- response fields that may have multiple entries for the same key
