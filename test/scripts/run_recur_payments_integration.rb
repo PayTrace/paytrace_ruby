@@ -1,4 +1,4 @@
-# $:<< "./lib" # uncomment this to run against a Git clone instead of an installed gem
+$:<< "./lib" # uncomment this to run against a Git clone instead of an installed gem
 
 require "paytrace"
 require "paytrace/debug"
@@ -76,13 +76,15 @@ params = {
 PayTrace::Debug.trace do
   ################
   # create a recurring payment for "john_doe" of $9.99 every month starting on 4/22/2016, running indefinitely. Send a receipt.
-  recur_id = PayTrace::RecurringTransaction.create(params)
+  result = PayTrace::RecurringTransaction.create(params)
+  recur_id = result.values['RECURID']
   PayTrace::Debug.log "Recurrence ID: #{recur_id}"
 end
 
 PayTrace::Debug.log "Modify recurrence for john_doe..."
 PayTrace::Debug.trace do
-  recur_id = PayTrace::RecurringTransaction.create(params)
+  result = PayTrace::RecurringTransaction.create(params)
+  recur_id = result.values['RECURID']
   PayTrace::Debug.log "Recurrence ID: #{recur_id}"
   update_params = {
     recur_id: recur_id,
@@ -93,7 +95,8 @@ end
 
 PayTrace::Debug.log "Delete a recurrence for john_doe..."
 PayTrace::Debug.trace do
-  recur_id = PayTrace::RecurringTransaction.create(params)
+  result = PayTrace::RecurringTransaction.create(params)
+  recur_id = result.values['RECURID']
   PayTrace::Debug.log "Recurrence ID: #{recur_id}"
   PayTrace::RecurringTransaction.delete({recur_id: recur_id})
 end
@@ -119,4 +122,4 @@ PayTrace::Debug.trace { PayTrace::RecurringTransaction.delete({customer_id: "joh
 PayTrace::Debug.log "Deleting customer 'john_doe'..."
 ################
 # delete "john doe"
-PayTrace::Debug.trace { PayTrace::Customer.delete({customer_id: "john_doe"}) }
+PayTrace::Debug.trace { PayTrace::Customer.delete("john_doe") }

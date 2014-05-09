@@ -4,29 +4,25 @@ module PayTrace
   # Manages recurring transactions
   class RecurringTransaction
     # :nodoc:
-    attr :id, :amount, :customer_id, :next, :total_count, :current_count, :repeat, :description
-
     CREATE_METHOD = "CreateRecur"
     DELETE_METHOD = "DeleteRecur"
     UPDATE_METHOD = "UpdateRecur"
     EXPORT_APPROVED_METHOD = "ExportCustomerRecur"
     EXPORT_SCHEDULED_METHOD = "ExportRecur"
 
-    def initialize(raw_response)
-      response_map = Hash[raw_response.split('+').map {|pair| pair.split('=')}]
-      @id = response_map["RECURID"].to_i
-      @amount = response_map["AMOUNT"].to_f
-      @customer_id = response_map["CUSTID"]
-      @next = response_map["NEXT"]
-      @total_count = response_map["TOTALCOUNT"].to_i
-      @current_count = response_map["CURRENTCOUNT"].to_i
-      @repeat = response_map["REPEAT"].to_i
-      @description = response_map["DESCRIPTION"]
-    end
-
-    def inspect
-      "<RecurringTransaction:#{@id},customer id:#{@customer_id},amount: #{@amount},next: #{@next}>"
-    end
+    RECURRING_TRANSACTION_PARAMS = [
+      :recur_id,
+      :customer_id,
+      :recur_frequency,
+      :recur_start,
+      :recur_next,
+      :recur_count,
+      :amount,
+      :transaction_type,
+      :description,
+      :recur_receipt,
+      :recur_type
+    ]
 
     # :doc:
 
@@ -36,14 +32,15 @@ module PayTrace
     # * *:customer_id* -- a customer ID to export
     # _Note:_ only supply a recurrence ID _or_ a customer ID, not both.
     def self.export_scheduled(params = {})
-      parse_response(set_request_data(EXPORT_SCHEDULED_METHOD, params))
+      response =  PayTrace::API::Gateway.send_request(EXPORT_SCHEDULED_METHOD, RECURRING_TRANSACTION_PARAMS, params)
+      response.parse_records('RECURRINGPAYMENT')
     end
 
     # See http://help.paytrace.com/api-exporting-a-recurring-transaction
     # Exports the single most recent recurring transaction for a given customer ID, Params: 
     # * *:customer_id* -- the customer ID to be exported for
     def self.export_approved(params = {})
-      set_request_data(EXPORT_APPROVED_METHOD, params)
+      PayTrace::API::Gateway.send_request(EXPORT_APPROVED_METHOD, RECURRING_TRANSACTION_PARAMS, params)
     end
 
     # See http://help.paytrace.com/api-create-recurring-transaction
@@ -58,7 +55,7 @@ module PayTrace
     # * *:recur_receipt* -- "Y" to send a receipt to the customer at each recurrence; default is "N"
     # * *:recur_type* -- default value is "C" which represents credit card number. Alternative is "A" which represents an ACH/check transaction
     def self.create(params = {})
-      parse_response(set_request_data(CREATE_METHOD, params))
+      PayTrace::API::Gateway.send_request(CREATE_METHOD, RECURRING_TRANSACTION_PARAMS, params)
     end
 
     # See http://help.paytrace.com/api-deleting-a-recurring-transaction
@@ -67,16 +64,8 @@ module PayTrace
     # * *:customer_id* -- a customer ID to export
     # _Note:_ only supply a recurrence ID _or_ a customer ID, not both.
     def self.delete(params = {})
-      request = PayTrace::API::Request.new
-      request.set_param(:method, DELETE_METHOD)
-      if params[:recur_id]
-        request.set_param(:recur_id, params[:recur_id])
-      else
-        request.set_param(:customer_id, params[:customer_id])
-      end
-
-      gateway = PayTrace::API::Gateway.new
-      parse_response(gateway.send_request(request))
+      fields = params.has_key?(:recur_id) ? [:recur_id] : [:customer_id]
+      response =  PayTrace::API::Gateway.send_request(DELETE_METHOD, fields, params)
     end
 
     # See http://help.paytrace.com/api-update-recurring-transaction
@@ -92,7 +81,7 @@ module PayTrace
     # * *:recur_receipt* -- "Y" to send a receipt to the customer at each recurrence; default is "N"
     # * *:recur_type* -- default value is "C" which represents credit card number. Alternative is "A" which represents an ACH/check transaction; _note:_ only use for check/ACH recurrences
     def self.update(params = {})
-      parse_response(set_request_data(UPDATE_METHOD, params))
+      PayTrace::API::Gateway.send_request(UPDATE_METHOD, RECURRING_TRANSACTION_PARAMS, params)
     end
 
     # :nodoc:
@@ -107,28 +96,5 @@ module PayTrace
         end
       end
     end
-
-    def self.set_request_data(method, params)
-      request = PayTrace::API::Request.new
-      request.set_param(:method, method)
-
-      request.set_params([
-        :recur_id,
-        :customer_id,
-        :recur_frequency,
-        :recur_start,
-        :recur_next,
-        :recur_count,
-        :amount,
-        :transaction_type,
-        :description,
-        :recur_receipt,
-        :recur_type
-        ], params)
-
-      gateway = PayTrace::API::Gateway.new
-      gateway.send_request(request)
-    end
-    # :doc:
   end
 end

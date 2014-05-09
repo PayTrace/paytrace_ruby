@@ -24,11 +24,9 @@ describe PayTrace::RecurringTransaction do
         recur_type: "A"
       }
 
-      recur_id = PayTrace::RecurringTransaction.create(params)
+      PayTrace::RecurringTransaction.create(params)
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::RecurringTransaction::CREATE_METHOD) + 
         "CUSTID~foo_bar|FREQUENCY~3|START~4/22/2014|TOTALCOUNT~999|AMOUNT~9.99|TRANXTYPE~sale|DESCRIPTION~Recurring transaction|CUSTRECEIPT~Y|RECURTYPE~A|"
-
-      recur_id.must_equal "12345"
     end
   end
 
@@ -51,12 +49,10 @@ describe PayTrace::RecurringTransaction do
         recur_receipt: "Y"
       }
 
-      recur_id = PayTrace::RecurringTransaction.update(params)
+      PayTrace::RecurringTransaction.update(params)
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::RecurringTransaction::UPDATE_METHOD) + 
         "RECURID~12345|CUSTID~foo_bar|FREQUENCY~3|START~4/22/2014|TOTALCOUNT~999|AMOUNT~9.99|TRANXTYPE~sale|" +
         "DESCRIPTION~Recurring transaction|CUSTRECEIPT~Y|"
-
-      recur_id.must_equal "12345"
     end
 
     it "accepts a recur type" do
@@ -73,12 +69,10 @@ describe PayTrace::RecurringTransaction do
         recur_type: "A"
       }
 
-      recur_id = PayTrace::RecurringTransaction.update(params)
+      PayTrace::RecurringTransaction.update(params)
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::RecurringTransaction::UPDATE_METHOD) + 
         "RECURID~12345|CUSTID~foo_bar|FREQUENCY~3|START~4/22/2014|TOTALCOUNT~999|AMOUNT~9.99|TRANXTYPE~sale|" +
         "DESCRIPTION~Recurring transaction|CUSTRECEIPT~Y|RECURTYPE~A|"
-
-      recur_id.must_equal "12345"
     end
   end
 
@@ -93,11 +87,9 @@ describe PayTrace::RecurringTransaction do
         recur_id: 12345
       }
 
-      recur_id = PayTrace::RecurringTransaction.delete(params)
+      PayTrace::RecurringTransaction.delete(params)
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::RecurringTransaction::DELETE_METHOD) + 
         "RECURID~12345|"
-      
-      recur_id.must_equal "12345"
     end
 
     it "works with a customer ID" do
@@ -105,11 +97,9 @@ describe PayTrace::RecurringTransaction do
         customer_id: "foo_bar"
       }
 
-      recur_id = PayTrace::RecurringTransaction.delete(params)
+      PayTrace::RecurringTransaction.delete(params)
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::RecurringTransaction::DELETE_METHOD) + 
         "CUSTID~foo_bar|"
-      
-      recur_id.must_equal "12345"
     end
   end
 
@@ -137,7 +127,9 @@ describe PayTrace::RecurringTransaction do
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::RecurringTransaction::EXPORT_SCHEDULED_METHOD) + 
         "CUSTID~john_doe|"
 
-      exported.must_be_instance_of PayTrace::RecurringTransaction
+      exported.must_be_instance_of Array
+      exported[0].must_be_instance_of Hash
+      exported[0]['AMOUNT'].must_equal '9.99'
     end
   end
 end
