@@ -38,9 +38,8 @@ params = {
 
 begin
   PayTrace::Debug.log "Attempting to remove existing customer 'john_doe'..."
-  c = PayTrace::Customer.new("john_doe")
   # delete customer "john_doe" if he already exists
-  PayTrace::Debug.trace { c.delete() }
+  PayTrace::Debug.trace { PayTrace::Customer.delete("john_doe") }
 rescue PayTrace::Exceptions::ErrorResponse
   PayTrace::Debug.log "No such cusomter... continuing..."
 end
@@ -50,8 +49,7 @@ begin
   PayTrace::Debug.trace do
     ################
     # create "john_doe" profile from credit card information and a billing address. Also include extra information such as email, phone, and fax
-    c = PayTrace::Customer.from_cc_info(params)
-    PayTrace::Debug.log "Customer ID: #{c.id}"
+    PayTrace::Customer.from_cc_info(params)
   end
 rescue
   if PayTrace::API::Gateway.last_response_object.errors.has_key?("ERROR-171")
@@ -121,4 +119,4 @@ PayTrace::Debug.trace { PayTrace::RecurringTransaction.delete({customer_id: "joh
 PayTrace::Debug.log "Deleting customer 'john_doe'..."
 ################
 # delete "john doe"
-PayTrace::Debug.trace { c.delete() }
+PayTrace::Debug.trace { PayTrace::Customer.delete({customer_id: "john_doe"}) }

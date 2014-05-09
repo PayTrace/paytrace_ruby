@@ -11,25 +11,34 @@ module PayTrace
     EXPORT_INACTIVE_CUSTOMERS = "ExportInactiveCustomers"
     EXPORT_CUSTOMERS_RESPONSE = "CUSTOMERRECORD"
 
-    # :doc:
-    # Initializer. Only param is:
-    # *customer_id* -- the merchant-generated customer ID, if present
-    def initialize(customer_id = nil)
-      @customer_id = customer_id
-    end
+    CUSTOMER_PARAMS = [
+      :customer_id,
+      :transaction_id,
+      :email,
+      [:customer_phone, :phone],
+      [:customer_fax, :fax],
+      :customer_password,
+      :account_number,
+      :routing_number,
+      :billing_address,
+      :shipping_address,
+      :credit_card,
+      :discretionary_data
+    ]
 
     # See http://help.paytrace.com/api-update-customer-profile
     # Updates the customer's information from parameters hash. See the self.from_cc_info and self.from_transaction_id for
     # information on the permitted parameters. Immediately updates the profile.
-    def update(params = {})
-      send_request(UPDATE_CUSTOMER, params)
+    def self.update(params = {})
+      PayTrace::API::Gateway.send_request(UPDATE_CUSTOMER, CUSTOMER_PARAMS.dup << :new_customer_id, params)
     end
 
     # See http://help.paytrace.com/api-delete-customer-profile
-    # Sends a request to the server to delete a given customer. No parameters; the customer ID is assumed to be set on
-    # this object.
-    def delete
-      PayTrace::API::Gateway.send_request(DELETE_CUSTOMER, [:customer_id], self)
+    # Sends a request to the server to delete a given customer. Params:
+    #
+    # * *:customer_id* -- the id of the customer to delete
+    def self.delete(params = {})
+      PayTrace::API::Gateway.send_request(DELETE_CUSTOMER, [:customer_id], params)
     end
 
     # See http://help.paytrace.com/api-exporting-customer-profiles for more information.
@@ -72,48 +81,13 @@ module PayTrace
     # *:routing_number* -- a bank routing number to use
     # *:discretionary_data* -- discretionay data (if any) for the customer, expressed as a hash
     def self.from_cc_info(params = {})
-      customer = Customer.new(params[:customer_id])
-      customer.send_request(CREATE_CUSTOMER, params)
+      PayTrace::API::Gateway.send_request(CREATE_CUSTOMER, CUSTOMER_PARAMS, params)
     end
 
     # See http://help.paytrace.com/api-create-customer-profile
-    # Creates a new customer profile from credit card information. Params are the same as from_cc_info, with the exception that *:transaction_id* is used to reference a previous sale transaction instead of a credit card.
+    # Creates a new customer profile from a previous transaction. Params are the same as from_cc_info, with the exception that *:transaction_id* is used to reference a previous sale transaction instead of a credit card.
     def self.from_transaction_id(params = {})
-      customer = Customer.new(params[:customer_id])
-      customer.send_request(CREATE_CUSTOMER, params)
-    end
-
-    # :nodoc:
-    # Internal helper method; not meant to be called directly.
-    def send_request(method, params)
-      request ||= PayTrace::API::Request.new
-      request.set_param(:method, method)
-      request.set_params([
-        :customer_id,
-        :new_customer_id,
-        :transaction_id,
-        :email,
-        [:customer_phone, :phone],
-        [:customer_fax, :fax],
-        :customer_password,
-        :account_number,
-        :routing_number,
-        :billing_address,
-        :shipping_address,
-        :credit_card,
-        :discretionary_data
-        ], params)
-
-      gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request)
-      unless response.has_errors?
-        values = response.values
-        @id = values["CUSTID"]
-        @customer_id = values["CUSTOMERID"]
-        self
-      else
-        nil
-      end
+      PayTrace::API::Gateway.send_request(CREATE_CUSTOMER, CUSTOMER_PARAMS, params)
     end
   end
 end

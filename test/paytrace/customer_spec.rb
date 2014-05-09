@@ -125,12 +125,11 @@ describe PayTrace::Customer do
         address_type: :billing
         })
 
-      c = PayTrace::Customer.new
-      c.update({new_customer_id: "joanie_doe", billing_address: billing_addr})
+      PayTrace::Customer.update({new_customer_id: "joanie_doe", billing_address: billing_addr})
 
-      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~UpdateCustomer|NEWCUSTID~joanie_doe|" +
+      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~UpdateCustomer|" +
         "BNAME~Foo Bar|BADDRESS~1234 Main Street|" + 
-        "BADDRESS2~Apartment 1B|BCITY~Shoreline|BSTATE~WA|BZIP~98133|BCOUNTRY~USA|" 
+        "BADDRESS2~Apartment 1B|BCITY~Shoreline|BSTATE~WA|BZIP~98133|BCOUNTRY~USA|NEWCUSTID~joanie_doe|" 
     end
 
     it "accepts a shipping address" do
@@ -146,12 +145,11 @@ describe PayTrace::Customer do
         address_type: :shipping
         })
 
-      c = PayTrace::Customer.new
-      c.update({new_customer_id: "joanie_doe", shipping_address: shipping_addr})
+      PayTrace::Customer.update({new_customer_id: "joanie_doe", shipping_address: shipping_addr})
 
-      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~UpdateCustomer|NEWCUSTID~joanie_doe|" +
+      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~UpdateCustomer|" +
         "SNAME~Foo Bar|SADDRESS~1234 Main Street|SADDRESS2~Apartment 1B|SCITY~Shoreline|SCOUNTY~Snohomish|" +
-        "SSTATE~WA|SZIP~98133|SCOUNTRY~USA|" 
+        "SSTATE~WA|SZIP~98133|SCOUNTRY~USA|NEWCUSTID~joanie_doe|" 
     end
 
     it "accepts extra customer information" do
@@ -166,23 +164,15 @@ describe PayTrace::Customer do
         discretionary_data: {hair_color: "red"}
       }
 
-      c = PayTrace::Customer.new
-      c.update(params)
+      PayTrace::Customer.update(params)
 
-      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~UpdateCustomer|NEWCUSTID~foo_bar|" +
+      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~UpdateCustomer|" +
       "EMAIL~support@paytrace.com|PHONE~123-555-1212|FAX~456-555-1212|CUSTPSWD~none_shall_pass|DDA~123456789|" +
-      "TR~12345678|hair_color~red|"
+      "TR~12345678|NEWCUSTID~foo_bar|hair_color~red|"
     end
   end
 
   describe "delete customer profile" do
-    it "works with an instantiated Customer object" do
-      c = PayTrace::Customer.new("foo_bar")
-       c.delete
-
-        PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~DeleteCustomer|CUSTID~foo_bar|"
-    end
-
     it "works with a static class method" do
       PayTrace::Customer.delete("foob_barb")
 

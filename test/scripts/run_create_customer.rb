@@ -34,4 +34,4 @@ params = {
   routing_number: 325081403,
   discretionary_data: { hair_color: "blue" }
 }
-PayTrace::Debug.trace { c = PayTrace::Customer.from_cc_info(params) }
+PayTrace::Debug.trace { PayTrace::Customer.from_cc_info(params) }
