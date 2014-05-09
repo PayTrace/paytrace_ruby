@@ -55,7 +55,7 @@ module PayTrace
     # Performs the same functionality as Customer.delete, but saves a step by not requiring the user to instantiate a new Customer object first. Params:
     # *customer_id* -- the merchant-assigned customer ID of the profile to delete
     def self.delete(customer_id)
-      Customer.new(customer_id).delete
+      PayTrace::API::Gateway.send_request(DELETE_CUSTOMER, [:customer_id], {customer_id: customer_id})
     end
 
     # See http://help.paytrace.com/api-create-customer-profile
