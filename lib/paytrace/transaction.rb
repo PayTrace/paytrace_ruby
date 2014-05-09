@@ -210,9 +210,7 @@ module PayTrace
     # * *:return_bin* -- if set to 'Y', card numbers from ExportTranx and ExportCustomers requests will include the first 6 and last 4 digits of the card number (optional)
     # * *:search_text* -- text that will be searched to narrow down transaction and check results for ExportTranx and ExportCheck requests (optional)
     def self.export(params = {})
-      request = PayTrace::API::Request.new
-      request.set_param(:method, EXPORT_TRANSACTIONS_METHOD)
-      request.set_params([
+      response =  PayTrace::API::Gateway.send_request(EXPORT_TRANSACTIONS_METHOD, [
         :transaction_id,
         :start_date, 
         :end_date, 
@@ -221,13 +219,7 @@ module PayTrace
         :transaction_user, 
         :return_bin,
         :search_text], params)
-
-      gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request)
-
-      unless response.has_errors?
-        response.parse_records(EXPORT_TRANSACTIONS_RESPONSE)
-      end
+      response.parse_records(EXPORT_TRANSACTIONS_RESPONSE)
     end
 
     # See http://help.paytrace.com/api-signature-capture-image
@@ -239,19 +231,15 @@ module PayTrace
     # * *:image_file* -- the filename of an image file to load and Base64 encode
     # _Note:_ only include the :image_data _or_ :image_file parameters. Also note that (due to technical limitations) if you supply the :image_file parameter, you must still supply the :image_type parameter.
     def self.attach_signature(params = {})
-      request = PayTrace::API::Request.new
-      request.set_param(:method, ATTACH_SIGNATURE_METHOD)
-      request.set_params([:transaction_id, 
-        :image_data, 
-        :image_type], params)
-      if params.has_key?(:image_file)
+      params = params.dup
+      if params.has_key?(:image_file) && !params.has_key?(:image_data)
         File.open(params[:image_file], 'rb') do |file|
-          request.set_param(:image_data, Base64.encode64(file.read))
+          params[:image_data] = Base64.encode64(file.read)
+          params.delete(:image_file)
         end
       end
 
-      gateway = PayTrace::API::Gateway.new
-      gateway.send_request(request)
+      PayTrace::API::Gateway.send_request(ATTACH_SIGNATURE_METHOD, [:transaction_id, :image_data, :image_type], params)
     end
 
     # See http://help.paytrace.com/api-calculate-shipping-rates
