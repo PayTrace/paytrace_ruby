@@ -7,11 +7,9 @@ require "paytrace/debug"
 PayTrace::Debug.configure_test("demo123", "demo123", "stage.paytrace.com")
 
 PayTrace::Debug.trace do
-  e = PayTrace::EmailReceiptRequest.new({email: "support@paytrace.com", check_id: "62" })
-  r = e.send_request
+  PayTrace::EmailReceiptRequest.create({email: "support@paytrace.com", check_id: "62" })
 end
 
 PayTrace::Debug.trace do
-  e = PayTrace::EmailReceiptRequest.new({email: "support@paytrace.com", transaction_id: "1143"})
-  r = e.send_request
+  PayTrace::EmailReceiptRequest.create({email: "support@paytrace.com", transaction_id: "1143"})
 end
