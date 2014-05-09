@@ -88,9 +88,6 @@ module PayTrace
     def send_request(method, params)
       request ||= PayTrace::API::Request.new
       request.set_param(:method, method)
-      if params[:billing_address]
-        params[:billing_address].name = nil if (method == CREATE_CUSTOMER && params[:transaction_id])
-      end
       set_request_data(params, request)
 
       gateway = PayTrace::API::Gateway.new

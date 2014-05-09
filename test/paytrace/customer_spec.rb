@@ -90,25 +90,6 @@ describe PayTrace::Customer do
         "SADDRESS2~Apartment 1B|SCITY~Shoreline|SCOUNTY~Snohomish|SSTATE~WA|SZIP~98133|SCOUNTRY~USA|"
     end
 
-    # special case: when creating from transaction ID, the billing name is ignored (no clue why, but it's in the API)
-    it "ignores the billing address name if using a transaction id" do
-      billing_addr = PayTrace::Address.new({
-        name: "Foo Bar",
-        street: "1234 Main Street",
-        street2: "Apartment 1B",
-        city: "Shoreline",
-        state: "WA",
-        region: "region",
-        country: "USA",
-        postal_code: 98133,
-        address_type: :billing
-        })
-
-      PayTrace::Customer.from_transaction_id({customer_id: "foo_bar", transaction_id: 12345678, billing_address: billing_addr})
-      PayTrace::API::Gateway.last_request.must_equal base_url + "METHOD~CreateCustomer|CUSTID~foo_bar|TRANXID~12345678|BADDRESS~1234 Main Street|" + 
-        "BADDRESS2~Apartment 1B|BCITY~Shoreline|BSTATE~WA|BZIP~98133|BCOUNTRY~USA|"
-    end
-
     # there are additional fields (email, phone, discretionary data, etc.) that can be sent
     it "accepts extra customer information" do
       params = {
