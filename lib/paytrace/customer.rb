@@ -88,24 +88,6 @@ module PayTrace
     def send_request(method, params)
       request ||= PayTrace::API::Request.new
       request.set_param(:method, method)
-      set_request_data(params, request)
-
-      gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request)
-      unless response.has_errors?
-        values = response.values
-        @id = values["CUSTID"]
-        @customer_id = values["CUSTOMERID"]
-        self
-      else
-        nil
-      end
-    end
-
-    # :nodoc:
-    # Internal helper method; not meant to be called directly.
-    def set_request_data(params, request = nil)
-      request ||= PayTrace::API::Request.new
       request.set_params([
         :customer_id,
         :new_customer_id,
@@ -121,6 +103,17 @@ module PayTrace
         :credit_card,
         :discretionary_data
         ], params)
+
+      gateway = PayTrace::API::Gateway.new
+      response = gateway.send_request(request)
+      unless response.has_errors?
+        values = response.values
+        @id = values["CUSTID"]
+        @customer_id = values["CUSTOMERID"]
+        self
+      else
+        nil
+      end
     end
   end
 end

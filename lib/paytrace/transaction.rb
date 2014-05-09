@@ -186,9 +186,7 @@ module PayTrace
     # Internal helper method
     def set_request(request)
       add_credit_card(request, credit_card) if credit_card
-      if customer.is_a?(PayTrace::Customer)
-        customer.set_request_data(request)
-      elsif customer.is_a?(Fixnum)
+      if customer.is_a?(Fixnum)
         request.set_param(:customer_id, customer)
       end
       add_transaction_info(request)
