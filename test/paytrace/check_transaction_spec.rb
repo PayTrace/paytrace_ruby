@@ -21,9 +21,8 @@ describe PayTrace::CheckTransaction do
         account_number: 1234567,
         routing_number: 1234568
       }
-      result = PayTrace::CheckTransaction.process_sale(params)
-      PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::CheckTransaction::PROCESS_SALE_METHOD) +
-        "CHECKTYPE~foo|AMOUNT~17.29|DDA~1234567|TR~1234568|"
+      result = PayTrace::CheckTransaction.sale(params)
+      assert_last_request_equals "METHOD~ProcessCheck|CHECKTYPE~foo|AMOUNT~17.29|DDA~1234567|TR~1234568|"
     end
 
     # UN, PSWD, TERMS, METHOD, CHECKTYPE, AMOUNT, CUSTID
@@ -34,9 +33,8 @@ describe PayTrace::CheckTransaction do
         amount: 17.28,
         customer_id: 'MMouse'
       }
-      result = PayTrace::CheckTransaction.process_sale(params)
-      PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::CheckTransaction::PROCESS_SALE_METHOD) +
-        "CHECKTYPE~bar|AMOUNT~17.28|CUSTID~MMouse|"
+      result = PayTrace::CheckTransaction.customer_id_sale(params)
+      assert_last_request_equals "METHOD~ProcessCheck|CHECKTYPE~bar|AMOUNT~17.28|CUSTID~MMouse|"
     end
 
 
@@ -73,7 +71,7 @@ describe PayTrace::CheckTransaction do
         shipping_address: sa
       }
 
-      result = PayTrace::CheckTransaction.process_sale(params)
+      result = PayTrace::CheckTransaction.customer_id_sale(params)
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::CheckTransaction::PROCESS_SALE_METHOD) +
         "CHECKTYPE~baz|AMOUNT~17.29|CUSTID~DDuck|BNAME~John Doe|BADDRESS~1234 Main Street|BADDRESS2~Apartment 1B|BCITY~Shoreline|BSTATE~WA|BZIP~98133|BCOUNTRY~US|SNAME~Jane Doe|SADDRESS~1235 Moon Street|SADDRESS2~Apartment 2C|SCITY~Shortline|SSTATE~WA|SZIP~98134|SCOUNTRY~US|"
     end
@@ -83,6 +81,7 @@ describe PayTrace::CheckTransaction do
       PayTrace::API::Gateway.next_response = "RESULT~Ok"
 
       params = {
+        check_type: 'foo',
         email: 'foo@bar.com',
         description: 'You bought something with a check, yo!',
         invoice: '12345',
@@ -91,10 +90,9 @@ describe PayTrace::CheckTransaction do
         tax_amount: 2.11,
         customer_reference_id: '1234AB'
       }
-      result = PayTrace::CheckTransaction.process_sale(params)
+      result = PayTrace::CheckTransaction.customer_id_sale(params)
 
-      PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::CheckTransaction::PROCESS_SALE_METHOD) +
-        "AMOUNT~17.27|CUSTID~YosemiteSam|EMAIL~foo@bar.com|INVOICE~12345|DESCRIPTION~You bought something with a check, yo!|TAX~2.11|CUSTREF~1234AB|"
+      assert_last_request_equals "METHOD~ProcessCheck|CHECKTYPE~foo|AMOUNT~17.27|CUSTID~YosemiteSam|EMAIL~foo@bar.com|INVOICE~12345|DESCRIPTION~You bought something with a check, yo!|TAX~2.11|CUSTREF~1234AB|"
     end
 
     it "accepts discretionary data" do
@@ -107,10 +105,9 @@ describe PayTrace::CheckTransaction do
         routing_number: 1234568,
         discretionary_data: {hair_color: :red}
       }
-      result = PayTrace::CheckTransaction.process_sale(params)
+      result = PayTrace::CheckTransaction.sale(params)
 
-      PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::CheckTransaction::PROCESS_SALE_METHOD) +
-        "CHECKTYPE~foo|AMOUNT~17.29|DDA~1234567|TR~1234568|hair_color~red|"
+      assert_last_request_equals "METHOD~ProcessCheck|CHECKTYPE~foo|AMOUNT~17.29|DDA~1234567|TR~1234568|hair_color~red|"
     end
   end
 
@@ -125,7 +122,7 @@ describe PayTrace::CheckTransaction do
         routing_number: 1234568,
         discretionary_data: {hair_color: :red}
       }
-      result = PayTrace::CheckTransaction.process_hold(params)
+      result = PayTrace::CheckTransaction.hold(params)
 
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::CheckTransaction::PROCESS_SALE_METHOD) +
         "CHECKTYPE~Hold|AMOUNT~17.29|DDA~1234567|TR~1234568|hair_color~red|"
@@ -136,12 +133,36 @@ describe PayTrace::CheckTransaction do
         PayTrace::API::Gateway.next_response = "RESULT~Ok"
         params = {
           check_type: 'foo',
-          check_id: 12345678
+          amount: 19.99,
+          routing_number: 325081403,
+          account_number: 1234567890
         }
-        result = PayTrace::CheckTransaction.process_refund(params)
+        result = PayTrace::CheckTransaction.refund(params)
 
-        PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::CheckTransaction::PROCESS_SALE_METHOD) +
-          "CHECKTYPE~Refund|CHECKID~12345678|"
+        assert_last_request_equals "METHOD~ProcessCheck|CHECKTYPE~Refund|AMOUNT~19.99|DDA~1234567890|TR~325081403|"
+      end
+
+      it "accepts a customer ID" do
+        PayTrace::API::Gateway.next_response = "RESULT~Ok"
+        params = {
+          check_type: 'foo',
+          amount: 19.99,
+          customer_id: 1234
+        }
+        result = PayTrace::CheckTransaction.refund_by_customer_id(params)
+
+        assert_last_request_equals "METHOD~ProcessCheck|CHECKTYPE~Refund|AMOUNT~19.99|CUSTID~1234|"
+      end
+
+      it "accepts a check ID" do
+        PayTrace::API::Gateway.next_response = "RESULT~Ok"
+        params = {
+          check_type: 'foo',
+          check_id: 1235
+        }
+        result = PayTrace::CheckTransaction.refund_existing_check_id(params)
+
+        assert_last_request_equals "METHOD~ProcessCheck|CHECKTYPE~Refund|CHECKID~1235|"
       end
     end
 

@@ -7,9 +7,6 @@ module PayTrace
   # Manages transaction-related functionality
   class Transaction
     # :nodoc:
-    attr_reader :amount, :credit_card, :type, :customer, :billing_address, :shipping_address,:optional_fields
-    attr_accessor :response, :discretionary_data
-
     TRANSACTION_METHOD = "PROCESSTRANX"
     EXPORT_TRANSACTIONS_METHOD = "ExportTranx"
     EXPORT_TRANSACTIONS_RESPONSE = "TRANSACTIONRECORD"
@@ -21,186 +18,619 @@ module PayTrace
     SETTLE_TRANSACTION_METHOD = "SettleTranx"
     ADJUST_AMOUNT_METHOD = "AdjustAmount"
 
+    SWIPED_SALE_REQUEST_REQUIRED = [
+      :transaction_type,
+      :amount, 
+      :swipe
+    ]
+
+    SWIPED_SALE_REQUEST_OPTIONAL = []
+
+    KEYED_SALE_REQUEST_REQUIRED = [
+      :transaction_type,
+      :amount,
+      :card_number,
+      :expiration_month,
+      :expiration_year
+    ]
+
+    KEYED_SALE_REQUEST_OPTIONAL = []
+
+    CUSTID_SALE_REQUEST_REQUIRED = [
+      :transaction_type,
+      :amount,
+      :customer_id
+    ]
+
+    BILLING_AND_SHIPPING_ADDRESS_FIELDS = [
+      :billing_name,
+      :billing_address,
+      :billing_address2,
+      :billing_city,
+      :billing_state,
+      :billing_postal_code,
+      :billing_country,
+      :shipping_name,
+      :shipping_address,
+      :shipping_address2,
+      :shipping_city,
+      :shipping_state,
+      :shipping_postal_code,
+      :shipping_region,
+      :shipping_country
+    ]
+
+    ADDRESSES_AND_EXTRA = BILLING_AND_SHIPPING_ADDRESS_FIELDS + [
+      :email,
+      :csc,
+      :invoice,
+      :description,
+      :tax_amount,
+      :customer_reference_id,
+      :discretionary_data
+    ]
+
+    ALL_OPTIONAL_FIELDS = ADDRESSES_AND_EXTRA + [
+      :return_clr,
+      :custom_dba,
+      :enable_partial_authentication
+    ]
+
+    CUSTID_SALE_REQUEST_OPTIONAL = ALL_OPTIONAL_FIELDS
+
+    REFERENCED_SALE_REQUEST_REQUIRED = [
+      :transaction_type,
+      :amount
+    ]
+
+    REFERENCED_SALE_REQUEST_OPTIONAL = [
+    ]
+
+    REFUND_OPTIONAL = ADDRESSES_AND_EXTRA + [:amount]
+
+    STORE_AND_FORWARD_OPTIONAL = ALL_OPTIONAL_FIELDS + [:store_forward_date]
+
+    CASH_ADVANCE_OPTIONAL = [
+      :billing_country,
+      :shipping_name,
+      :shipping_address,
+      :shipping_address2,
+      :shipping_city,
+      :shipping_region,
+      :shipping_state,
+      :shipping_postal_code,
+      :email,
+      :csc,
+      :invoice,
+      :description,
+      :tax_amount,
+      :customer_reference_id
+    ]
     # :doc:
 
     # See http://help.paytrace.com/api-sale
-    # Creates a sale transaction. Params (in hash format):
+    #
+    # Creates a sale transaction using a keyed in credit card.
+    #
+    # Required parameters:
+    #
     # * *:amount* -- the amount of the transaction
-    # Depending upon the type of sale, the following additional parameters may be present:
-    # * *:credit_card* -- a PayTrace::CreditCard object (key entered sale)
-    # * *:customer* -- a PayTrace::Customer object (for additional customer data; customer ID token or referenced transaction sale). _Note:_ for discretionary data, the best way to include it is by adding it to the PayTrace::Customer object.
-    # * *:optional* -- optional fields hash, kept inside the parameters
-    # _Note:_ the following parameters are kept in the optional fields hash
+    # * *:card_number* -- the credit card number used
+    # * *:expiration_month* -- the expiration month of the credit card
+    # * *:expiration_year* -- the expiration year of the credit card
+    def self.keyed_sale(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::SALE}),
+        KEYED_SALE_REQUEST_REQUIRED,
+        KEYED_SALE_REQUEST_OPTIONAL)
+    end
+
+    # See http://help.paytrace.com/api-sale
+    #
+    # Creates a sale transaction using a swiped in credit card.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the transaction
     # * *:swipe* -- credit card swipe data (card swiped sales)
-    # * *:customer_id* -- a PayTrace customer ID (customer ID token sale)
-    # * *:transaction_id* -- a transaction ID (referenced transaction sale)
+    def self.swiped_sale(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::SALE}),
+        SWIPED_SALE_REQUEST_REQUIRED,
+        SWIPED_SALE_REQUEST_OPTIONAL)
+    end
+
+    # See http://help.paytrace.com/api-sale
+    #
+    # Creates a sale transaction using a swiped in credit card.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the transaction
+    # * *:customer_id* -- the customer ID to reference for this sale
+    #
+    # Optional parameters:
+    #
+    # * *:billing_name* -- the billing name for this transaction
+    # * *:billing_address* -- the billing street address for this transaction
+    # * *:billing_address2* -- the billing street address second line (e.g., apartment, suite) for this transaction
+    # * *:billing_city* -- the billing city for this transaction
+    # * *:billing_state* -- the billing state for this transaction
+    # * *:billing_postal_code* -- the billing zip code for this transaction
+    # * *:billing_country* -- the billing country for this transaction
+    # * *:shipping_name* -- the shipping name for this transaction
+    # * *:shipping_address* -- the shipping street address for this transaction
+    # * *:shipping_address2* -- the shipping street address second line (e.g., apartment, suite) for this transaction
+    # * *:shipping_city* -- the shipping city for this transaction
+    # * *:shipping_state* -- the shipping state for this transaction
+    # * *:shipping_postal_code* -- the shipping zip code for this transaction
+    # * *:shipping_region* -- the shipping region (e.g. county) for this transaction
+    # * *:shipping_country* -- the shipping country for this transaction
+    # * *:email* -- the customer email for this transaction
     # * *:csc* -- credit card security code (customer ID token or referenced transaction sale)
     # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction sale)
     # * *:description* -- a description of the sale (customer ID token or referenced transaction sale)
     # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
     # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
+    # * *:discretionary_data* -- a hash of optional discretionary data to attach to this transaction
     # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(customer ID token sale)
     # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token sale)
     # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
-    def self.sale(args)
-      create_transaction(args,TransactionTypes::SALE)
+    def self.customer_id_sale(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::SALE}),
+        CUSTID_SALE_REQUEST_REQUIRED,
+        CUSTID_SALE_REQUEST_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-authorizations
-    # Performs an authorization transaction. Params (in hash format):
+    #
+    # Performs an authorization using a keyed in credit card. 
+    # 
+    # Required parameters:
+    #
     # * *:amount* -- the amount of the transaction
-    # Depending upon the type of authorization, the following additional parameters may be present:
-    # * *:credit_card* -- a PayTrace::CreditCard object (standard authorization)
-    # * *:customer* -- a PayTrace::Customer object (for additional customer data; customer ID token or referenced transaction sale). _Note:_ for discretionary data, the best way to include it is by adding it to the PayTrace::Customer object.
-    # * *:optional* -- optional fields hash, kept inside the parameters
-    # _Note:_ the following parameters are kept in the optional fields hash
-    # * *:customer_id* -- a PayTrace customer ID (customer ID token auth)
-    # * *:transaction_id* -- a transaction ID (referenced transaction sale)
-    # * *:csc* -- credit card security code (customer ID token or referenced transaction auth)
-    # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction auth)
-    # * *:description* -- a description of the auth (customer ID token or referenced transaction auth)
-    # * *:tax_amount* -- the amount of tax on the auth (customer ID token or referenced transaction auth)
-    # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction auth)
-    # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process auths or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(customer ID token auth)
-    # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process auths or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token auth)
-    # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token auth)
-    def self.authorization(args)
-      create_transaction(args,TransactionTypes::Authorization)
+    # * *:card_number* -- the credit card number used
+    # * *:expiration_month* -- the expiration month of the credit card
+    # * *:expiration_year* -- the expiration year of the credit card
+    def self.keyed_authorization(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::Authorization}),
+        [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year])
+    end
+
+    # See http://help.paytrace.com/api-authorizations
+    #
+    # Performs an authorization using a stored customer id. 
+    # 
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the transaction
+    # * *:customer_id* -- the customer ID to reference for this authorization
+    def self.customer_id_authorization(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::Authorization}), [:transaction_type, :amount, :customer_id])
     end
 
     # See http://help.paytrace.com/api-refunds
-    # Note that the parameters and transaction types are the same as for self.sale
-    def self.refund(args)
-      create_transaction(args,TransactionTypes::Refund)
+    #
+    # Performs a refund using swiped credit card data.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the transaction
+    # * *:swipe* -- credit card swipe data (card swiped sales)
+    #
+    # Optional parameters:
+    #
+    # * *:billing_name* -- the billing name for this transaction
+    # * *:billing_address* -- the billing street address for this transaction
+    # * *:billing_address2* -- the billing street address second line (e.g., apartment, suite) for this transaction
+    # * *:billing_city* -- the billing city for this transaction
+    # * *:billing_state* -- the billing state for this transaction
+    # * *:billing_postal_code* -- the billing zip code for this transaction
+    # * *:billing_country* -- the billing country for this transaction
+    # * *:shipping_name* -- the shipping name for this transaction
+    # * *:shipping_address* -- the shipping street address for this transaction
+    # * *:shipping_address2* -- the shipping street address second line (e.g., apartment, suite) for this transaction
+    # * *:shipping_city* -- the shipping city for this transaction
+    # * *:shipping_state* -- the shipping state for this transaction
+    # * *:shipping_postal_code* -- the shipping zip code for this transaction
+    # * *:shipping_region* -- the shipping region (e.g. county) for this transaction
+    # * *:shipping_country* -- the shipping country for this transaction
+    # * *:email* -- the customer email for this transaction
+    # * *:csc* -- credit card security code (customer ID token or referenced transaction sale)
+    # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction sale)
+    # * *:description* -- a description of the sale (customer ID token or referenced transaction sale)
+    # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
+    # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
+    # * *:discretionary_data* -- a hash of optional discretionary data to attach to this transaction
+    # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(customer ID token sale)
+    # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token sale)
+    # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
+    def self.swiped_refund(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::Refund}), [:transaction_type, :amount, :swipe], REFUND_OPTIONAL)
+    end
+
+    # See http://help.paytrace.com/api-refunds
+    #
+    # Performs a refund using keyed-in credit card data.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the transaction
+    # * *:card_number* -- the credit card number used
+    # * *:expiration_month* -- the expiration month of the credit card
+    # * *:expiration_year* -- the expiration year of the credit card
+    # 
+    # _Note:_ optional parameters are identical to those for swiped_refund
+    def self.keyed_refund(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD, 
+        params.merge({transaction_type: TransactionTypes::Refund}), [
+          :transaction_type,
+          :amount,
+          :card_number,
+          :expiration_month,
+          :expiration_year], REFUND_OPTIONAL)
+    end
+    
+
+    # See http://help.paytrace.com/api-refunds
+    #
+    # Performs a refund using a customer ID as a reference.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the transaction
+    # * *:customer_id -- the customer ID for the refund 
+    # 
+    # _Note:_ optional parameters are identical to those for swiped_refund
+    def self.customer_id_refund(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::Refund}), [:transaction_type, :amount, :customer_id], REFUND_OPTIONAL)
+    end
+
+
+    # See http://help.paytrace.com/api-refunds
+    #
+    # Performs a refund using a transaction ID as a reference.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the transaction
+    # * *:transaction_id -- the customer ID for the refund 
+    # 
+    # _Note:_ optional parameters are identical to those for swiped_refund
+    def self.transaction_id_refund(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::Refund}), [:transaction_type, :transaction_id], REFUND_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-void
-    # Performs a void request. Parameters are:
-    # * *transaction_id* -- (_Note:_ this is _not_ in a hash!) the transaction ID to void
-    def self.void(transaction_id)
-      params = {transaction_id: transaction_id}
-      t = Transaction.new({type: TransactionTypes::Void,
-                          optional:params})
-      t.response = t.send_request
-      t
+    #
+    # Performs a void request.
+    #
+    # Required parameters:
+    #
+    # * *:transaction_id* -- the transaction ID to void
+    def self.void(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::Void}), [:transaction_type, :transaction_id])
     end
 
     # See http://help.paytrace.com/api-forced-sale
-    # Performs a forced approval sale. Params are:
-    # *approval_code* -- (_Note:_ this is _not_ in a hash!) the approval code obtained external to the PayTrace system
-    # *args* -- the argument hash, see the arguments for self.sale
-    def self.forced_sale(approval_code,args)
-      args[:approval_code] = approval_code
-      create_transaction(args,TransactionTypes::ForcedSale)
+    #
+    # Performs a forced approval sale using swiped credit card data.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the forced sale
+    # * *:swipe* -- credit card swipe data (card swiped sales)
+    # * *:approval_code* -- the approval code obtained external to the PayTrace system
+    def self.swiped_forced_sale(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::ForcedSale}), [:transaction_type, :amount, :swipe, :approval_code],
+        ADDRESSES_AND_EXTRA)
+    end
+
+    # See http://help.paytrace.com/api-forced-sale
+    #
+    # Performs a forced approval sale using keyed-in credit card data.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the forced sale
+    # * *:card_number* -- the credit card number used
+    # * *:expiration_month* -- the expiration month of the credit card
+    # * *:expiration_year* -- the expiration year of the credit card
+    # * *:approval_code* -- the approval code obtained external to the PayTrace system
+    def self.keyed_forced_sale(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::ForcedSale}), [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year, :approval_code],
+        ADDRESSES_AND_EXTRA)
+    end
+
+    # See http://help.paytrace.com/api-forced-sale
+    #
+    # Performs a forced approval sale using a customer ID as a reference.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the forced sale
+    # * *:customer_id -- the customer ID for the forced sale 
+    # * *:approval_code* -- the approval code obtained external to the PayTrace system
+    def self.customer_id_forced_sale(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::ForcedSale}), [:transaction_type, :amount, :customer_id, :approval_code],
+        ADDRESSES_AND_EXTRA)
+    end
+
+    # See http://help.paytrace.com/api-forced-sale
+    #
+    # Performs a forced approval sale using a transaction ID as a reference.
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the forced sale
+    # * *:transaction_id -- the transaction ID for the forced sale 
+    # * *:approval_code* -- the approval code obtained external to the PayTrace system
+    def self.transaction_id_forced_sale(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::ForcedSale}), [:transaction_type, :transaction_id, :approval_code],
+        ADDRESSES_AND_EXTRA)
     end
 
     # See http://help.paytrace.com/api-capture
-    # Capturing a transaction updates an approved authorization to a pending settlement status that will initiate a transfer of funds. Processing a capture through the PayTrace API may only be accomplished by providing the transaction ID of the unsettled transaction that should be settled. Params are:
+    #
+    # Capturing a transaction updates an approved authorization to a pending settlement status that will initiate a transfer of funds. Processing a capture through the PayTrace API may only be accomplished by providing the transaction ID of the unsettled transaction that should be settled.
+    #
+    # Required parameters:
+    #
     # * *transaction_id* -- the transaction ID to be captured
-    def self.capture(transaction_id)
-      t = Transaction.new({transaction_id: transaction_id, type: TransactionTypes::Capture,
-                          optional:params})
-      t.response = t.send_request
-      t
+    def self.capture(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::Capture}), [:transaction_type, :transaction_id])
     end
 
     # See http://help.paytrace.com/api-cash-advance
-    # Processing a Cash Advance transaction is similar to processing a Sale, however Cash Advances are special transactions that result in cash disbursements to the card holder. Consequently, additional information is required to process Cash Advances. Cash Advances should always be swiped unless your card reader is not able to reader the card’s magnetic stripe. Additionally, your PayTrace account must be specially configured to process this type of transaction. Params are:
+    #
+    # Processing a Cash Advance transaction is similar to processing a Sale, however Cash Advances are special transactions that result in cash disbursements to the card holder. Consequently, additional information is required to process Cash Advances. Cash Advances should always be swiped unless your card reader is not able to reader the card’s magnetic stripe. Additionally, your PayTrace account must be specially configured to process this type of transaction.
+    #
     # * *:amount* -- the amount of the cash advance
-    # Depending upon the type of cash advance, the following additional parameters may be present:
-    # * *:credit_card* -- a PayTrace::CreditCard object (key entered cash advances)
-    # * *:optional* -- optional fields hash, kept inside the parameters
-    # _Note:_ the following parameters are kept in the optional fields hash
-    # * *:swipe* -- swipe data provided with the cash advance (swiped cash advances)
-    # * *:cash_advance* -- (swiped cash advances) When set to "Y", this attribute causes a Sale transaction to be processed as a cash advance where cash is given to the customer as opposed to a product or service. Please note that Cash Advances may only be processed on accounts that are set up on the TSYS/Vital network and are configured to process Cash Advances. Also, only swiped/card present Sales may include the CashAdvance parameter
-    # * *:id_number* -- the card holder’s drivers license number or other form of photo ID
-    # * *:id_expiration* -- the expiration date of the card holder’s photo ID. MM/DD/YYYY
-    # * *:cc_last_4* -- the last 4 digits of the card number as it appears on the face of the card
-    # * *:billing_address* -- a billing address provided with the cash advance
-    # * *:shipping_address* -- a shipping address provided with the cash advance (key entered cash advances)
-    # * *:csc* -- credit card security code (key entered cash advances)
-    # * *:invoice* -- an internal invoice number (key entered cash advances)
-    # * *:description* -- a description of the auth (key entered cash advances)
-    # * *:tax_amount* -- the amount of tax on the auth (key entered cash advances)
-    # * *:customer_reference_id* -- a customer reference ID (key entered cash advances)
-    def self.cash_advance(args)
-      args[:cash_advance] = "Y"
+    # * *:swipe* -- swipe data provided with the cash advance
+    # * *:id_number* -- the identification number of the photo ID used
+    # * *:id_expiration* -- the expiration date of the photo ID
+    # * *:cc_last_4* -- the last four digits of the credit card presented
+    # * *:billing_name* -- the billing name for this transaction
+    # * *:billing_address* -- the billing street address for this transaction
+    # * *:billing_address2* -- the billing street address second line (e.g., apartment, suite) for this transaction
+    # * *:billing_city* -- the billing city for this transaction
+    # * *:billing_state* -- the billing state for this transaction
+    # * *:billing_postal_code* -- the billing zip code for this transaction
+    #
+    # Optional parameters:
+    #
+    # * *:billing_country* -- the billing country for this transaction
+    # * *:shipping_name* -- the shipping name for this transaction
+    # * *:shipping_address* -- the shipping street address for this transaction
+    # * *:shipping_address2* -- the shipping street address second line (e.g., apartment, suite) for this transaction
+    # * *:shipping_city* -- the shipping city for this transaction
+    # * *:shipping_state* -- the shipping state for this transaction
+    # * *:shipping_postal_code* -- the shipping zip code for this transaction
+    # * *:shipping_region* -- the shipping region (e.g. county) for this transaction
+    # * *:email* -- the customer email for this transaction
+    # * *:csc* -- credit card security code (customer ID token or referenced transaction sale)
+    # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction sale)
+    # * *:description* -- a description of the sale (customer ID token or referenced transaction sale)
+    # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
+    # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
+    def self.swiped_cash_advance(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::SALE, cash_advance: 'Y'}), [
+          :transaction_type,
+          :amount,
+          :swipe,
+          :cash_advance,
+          :id_number,
+          :id_expiration,
+          :cc_last_4,
+          :billing_name,
+          :billing_address,
+          :billing_address2,
+          :billing_city,
+          :billing_state,
+          :billing_postal_code], CASH_ADVANCE_OPTIONAL)
+    end
 
-      create_transaction(args,TransactionTypes::SALE)
+    # See http://help.paytrace.com/api-cash-advance
+    #
+    # Processing a Cash Advance transaction is similar to processing a Sale, however Cash Advances are special transactions that result in cash disbursements to the card holder. Consequently, additional information is required to process Cash Advances. Cash Advances should always be swiped unless your card reader is not able to reader the card’s magnetic stripe. Additionally, your PayTrace account must be specially configured to process this type of transaction.
+    #
+    # * *:amount* -- the amount of the cash advance
+    # * *:card_number* -- the credit card number used
+    # * *:expiration_month* -- the expiration month of the credit card
+    # * *:expiration_year* -- the expiration year of the credit card
+    # * *:id_number* -- the identification number of the photo ID used
+    # * *:id_expiration* -- the expiration date of the photo ID
+    # * *:cc_last_4* -- the last four digits of the credit card presented
+    # * *:billing_name* -- the billing name for this transaction
+    # * *:billing_address* -- the billing street address for this transaction
+    # * *:billing_address2* -- the billing street address second line (e.g., apartment, suite) for this transaction
+    # * *:billing_city* -- the billing city for this transaction
+    # * *:billing_state* -- the billing state for this transaction
+    # * *:billing_postal_code* -- the billing zip code for this transaction
+    #
+    # Optional parameters:
+    #
+    # * *:billing_country* -- the billing country for this transaction
+    # * *:shipping_name* -- the shipping name for this transaction
+    # * *:shipping_address* -- the shipping street address for this transaction
+    # * *:shipping_address2* -- the shipping street address second line (e.g., apartment, suite) for this transaction
+    # * *:shipping_city* -- the shipping city for this transaction
+    # * *:shipping_state* -- the shipping state for this transaction
+    # * *:shipping_postal_code* -- the shipping zip code for this transaction
+    # * *:shipping_region* -- the shipping region (e.g. county) for this transaction
+    # * *:email* -- the customer email for this transaction
+    # * *:csc* -- credit card security code (customer ID token or referenced transaction sale)
+    # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction sale)
+    # * *:description* -- a description of the sale (customer ID token or referenced transaction sale)
+    # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
+    # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
+    def self.keyed_cash_advance(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::SALE, cash_advance: 'Y'}), [
+          :transaction_type,
+          :amount,
+          :card_number,
+          :expiration_month,
+          :expiration_year,
+          :cash_advance,
+          :id_number,
+          :id_expiration,
+          :cc_last_4,
+          :billing_name,
+          :billing_address,
+          :billing_address2,
+          :billing_city,
+          :billing_state,
+          :billing_postal_code], CASH_ADVANCE_OPTIONAL)
+      end
+
+    # See http://help.paytrace.com/api-store-and-forward
+    #
+    # Processing a store & forward through the PayTrace API will request that the transaction is stored for future authorization for specified amount. Please note that the authorization of the store & forward may be scheduled by provided a StrFwdDate value or manually via the Virtual Terminal. *Note that swiped account numbers and CSC values are not stored. Only the card number and expiration dates are stored from the swipe.*
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the sale
+    # * *:swipe* -- the swiped credit card information
+    #
+    # Optional parameters:
+    #
+    # * *:billing_name* -- the billing name for this transaction
+    # * *:billing_address* -- the billing street address for this transaction
+    # * *:billing_address2* -- the billing street address second line (e.g., apartment, suite) for this transaction
+    # * *:billing_city* -- the billing city for this transaction
+    # * *:billing_state* -- the billing state for this transaction
+    # * *:billing_postal_code* -- the billing zip code for this transaction
+    # * *:billing_country* -- the billing country for this transaction
+    # * *:shipping_name* -- the shipping name for this transaction
+    # * *:shipping_address* -- the shipping street address for this transaction
+    # * *:shipping_address2* -- the shipping street address second line (e.g., apartment, suite) for this transaction
+    # * *:shipping_city* -- the shipping city for this transaction
+    # * *:shipping_state* -- the shipping state for this transaction
+    # * *:shipping_postal_code* -- the shipping zip code for this transaction
+    # * *:shipping_region* -- the shipping region (e.g. county) for this transaction
+    # * *:shipping_country* -- the shipping country for this transaction
+    # * *:email* -- the customer email for this transaction
+    # * *:csc* -- credit card security code (customer ID token or referenced transaction sale)
+    # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction sale)
+    # * *:description* -- a description of the sale (customer ID token or referenced transaction sale)
+    # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
+    # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
+    # * *:discretionary_data* -- a hash of optional discretionary data to attach to this transaction
+    # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(customer ID token sale)
+    # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token sale)
+    # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
+    # * *:store_forward_date* -- optional future date when the transaction should be authorized and settled. Only applicable if the TranxType is STR/FWD
+    def self.swiped_store_forward(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::StoreForward}), [:transaction_type, :amount, :swipe], STORE_AND_FORWARD_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-store-and-forward
+    #
     # Processing a store & forward through the PayTrace API will request that the transaction is stored for future authorization for specified amount. Please note that the authorization of the store & forward may be scheduled by provided a StrFwdDate value or manually via the Virtual Terminal. *Note that swiped account numbers and CSC values are not stored. Only the card number and expiration dates are stored from the swipe.*
-    # All versions of store and forward may include the following parameters:
-    # * *:amount* -- the amount of the store and forward
-    # * *:optional* -- optional fields hash, kept inside the parameters
-    # The swiped card version takes the following parameters:
-    # * *:swipe* -- swipe data provided with the store and forward (in optional parameters hash)
-    # The key entered version takes the following parameters:
-    # * *:credit_card* -- additional credit card data
-    # The customer ID (token) version takes the following parameters:
-    # * *:customer_id* -- the customer ID (in optional parameters hash)
-    # * *:customer* -- a PayTrace::Customer object for additional customer details
-    # * *:csc* -- credit card security code (in optional parameters hash)
-    # * *:invoice* -- an internal invoice number (in optional parameters hash)
-    # * *:description* -- a description of the auth (in optional parameters hash)
-    # * *:tax_amount* -- the amount of tax on the auth (in optional parameters hash)
-    # * *:customer_reference_id* -- a customer reference ID (in optional parameters hash)
-    # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process auths or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(in optional parameters hash)
-    # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process auths or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (in optional parameters hash)
-    # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (in optional parameters hash)
-    # * *:store_forward_date* -- optional future date when the transaction should be authorized and settled. Only applicable if the TranxType is STR/FWD (in optional parameters hash)
-    def self.store_forward(amount,credit_card,args={})
-      args[:amount] = amount
-      args[:credit_card] = credit_card
-      create_transaction(args,TransactionTypes::StoreForward)
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the sale
+    # * *:card_number* -- the credit card number
+    # * *:expiration_month* -- the expiration month of the credit card
+    # * *:expiration_year* -- the expiration year of the credit card
+    #
+    # Optional parameters:
+    #
+    # * *:billing_name* -- the billing name for this transaction
+    # * *:billing_address* -- the billing street address for this transaction
+    # * *:billing_address2* -- the billing street address second line (e.g., apartment, suite) for this transaction
+    # * *:billing_city* -- the billing city for this transaction
+    # * *:billing_state* -- the billing state for this transaction
+    # * *:billing_postal_code* -- the billing zip code for this transaction
+    # * *:billing_country* -- the billing country for this transaction
+    # * *:shipping_name* -- the shipping name for this transaction
+    # * *:shipping_address* -- the shipping street address for this transaction
+    # * *:shipping_address2* -- the shipping street address second line (e.g., apartment, suite) for this transaction
+    # * *:shipping_city* -- the shipping city for this transaction
+    # * *:shipping_state* -- the shipping state for this transaction
+    # * *:shipping_postal_code* -- the shipping zip code for this transaction
+    # * *:shipping_region* -- the shipping region (e.g. county) for this transaction
+    # * *:shipping_country* -- the shipping country for this transaction
+    # * *:email* -- the customer email for this transaction
+    # * *:csc* -- credit card security code (customer ID token or referenced transaction sale)
+    # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction sale)
+    # * *:description* -- a description of the sale (customer ID token or referenced transaction sale)
+    # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
+    # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
+    # * *:discretionary_data* -- a hash of optional discretionary data to attach to this transaction
+    # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(customer ID token sale)
+    # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token sale)
+    # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
+    # * *:store_forward_date* -- optional future date when the transaction should be authorized and settled. Only applicable if the TranxType is STR/FWD
+    def self.keyed_store_forward(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::StoreForward}), [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year], STORE_AND_FORWARD_OPTIONAL)
     end
 
-    # :nodoc:
-    def self.create_transaction(args,type)
-      amount = args.delete(:amount)  if args[:amount]
-      cc = CreditCard.new(args.delete(:credit_card)) if args[:credit_card]
-      customer = args.delete(:customer) if args[:customer]
-
-      t = Transaction.new({ 
-        amount: amount,
-        credit_card: cc,
-        customer: customer,
-        type: type,
-        optional:args})      
-      t.send_request
-
-      t
+    # See http://help.paytrace.com/api-store-and-forward
+    #
+    # Processing a store & forward through the PayTrace API will request that the transaction is stored for future authorization for specified amount. Please note that the authorization of the store & forward may be scheduled by provided a StrFwdDate value or manually via the Virtual Terminal. *Note that swiped account numbers and CSC values are not stored. Only the card number and expiration dates are stored from the swipe.*
+    #
+    # Required parameters:
+    #
+    # * *:amount* -- the amount of the sale
+    # * *:customer_id* -- the customer ID for the sale
+    #
+    # Optional parameters:
+    #
+    # * *:billing_name* -- the billing name for this transaction
+    # * *:billing_address* -- the billing street address for this transaction
+    # * *:billing_address2* -- the billing street address second line (e.g., apartment, suite) for this transaction
+    # * *:billing_city* -- the billing city for this transaction
+    # * *:billing_state* -- the billing state for this transaction
+    # * *:billing_postal_code* -- the billing zip code for this transaction
+    # * *:billing_country* -- the billing country for this transaction
+    # * *:shipping_name* -- the shipping name for this transaction
+    # * *:shipping_address* -- the shipping street address for this transaction
+    # * *:shipping_address2* -- the shipping street address second line (e.g., apartment, suite) for this transaction
+    # * *:shipping_city* -- the shipping city for this transaction
+    # * *:shipping_state* -- the shipping state for this transaction
+    # * *:shipping_postal_code* -- the shipping zip code for this transaction
+    # * *:shipping_region* -- the shipping region (e.g. county) for this transaction
+    # * *:shipping_country* -- the shipping country for this transaction
+    # * *:email* -- the customer email for this transaction
+    # * *:csc* -- credit card security code (customer ID token or referenced transaction sale)
+    # * *:invoice* -- an internal invoice number (customer ID token or referenced transaction sale)
+    # * *:description* -- a description of the sale (customer ID token or referenced transaction sale)
+    # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
+    # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
+    # * *:discretionary_data* -- a hash of optional discretionary data to attach to this transaction
+    # * *:return_clr* -- if set to "Y", card level results will be returned w/ the response. Card level results include whether or not the card is a consumer, purchasing, check, rewards, etc. account. Card level results are only returned with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, Global, Paymentech, and Trident networks.(customer ID token sale)
+    # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token sale)
+    # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
+    # * *:store_forward_date* -- optional future date when the transaction should be authorized and settled. Only applicable if the TranxType is STR/FWD
+    def self.customer_id_store_forward(params)
+      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
+        params.merge({transaction_type: TransactionTypes::StoreForward}), [:transaction_type, :amount, :customer_id], STORE_AND_FORWARD_OPTIONAL)
     end
-
-    # Not meant to be called directly; use static helper methods instead
-    def initialize(params = {})
-      @amount = params[:amount]
-      @credit_card = params[:credit_card]
-      @type = params[:type]
-      @customer = params[:customer]
-      @discretionary_data = params[:discretionary_data] || {}
-      include_optional(params[:optional]) if params[:optional]
-    end
-
-    # Internal helper method
-    def set_request(request)
-      add_credit_card(request, credit_card) if credit_card
-      if customer.is_a?(Fixnum)
-        request.set_param(:customer_id, customer)
-      end
-      add_transaction_info(request)
-      add_addresses(request)
-      add_optional_fields(request) if optional_fields
-      if @discretionary_data.any?
-        request.set_discretionary(@discretionary_data)
-      end
-    end
-    # :doc:
 
     # See http://help.paytrace.com/api-export-transaction-information
+    #
     # Exports transaction information.
-    # Parameters hash:
+    #
+    # Required parameters:
+    #
     # * *:transaction_id* -- a specific transaction ID to export, _or_
     # * *:start_date* -- a start date for a range of transactions to export
     # * *:end_date* -- an end date for a range of transactions to export
@@ -209,43 +639,79 @@ module PayTrace
     # * *:transaction_user* -- the user who created the transaction (optional)
     # * *:return_bin* -- if set to 'Y', card numbers from ExportTranx and ExportCustomers requests will include the first 6 and last 4 digits of the card number (optional)
     # * *:search_text* -- text that will be searched to narrow down transaction and check results for ExportTranx and ExportCheck requests (optional)
-    def self.export(params = {})
-      response =  PayTrace::API::Gateway.send_request(EXPORT_TRANSACTIONS_METHOD, [
-        :transaction_id,
-        :start_date, 
-        :end_date, 
+    def self.export_by_date_range(params = {})
+      response =  PayTrace::API::Gateway.send_request(EXPORT_TRANSACTIONS_METHOD, params, [:start_date, :end_date], [
         :transaction_type, 
         :customer_id, 
         :transaction_user, 
         :return_bin,
-        :search_text], params)
+        :search_text])
+      response.parse_records(EXPORT_TRANSACTIONS_RESPONSE)
+    end
+
+    # See http://help.paytrace.com/api-export-transaction-information
+    #
+    # Exports transaction information.
+    #
+    # Required parameters:
+    #
+    # * *:transaction_id* -- a specific transaction ID to export, _or_
+    # * *:start_date* -- a start date for a range of transactions to export
+    # * *:end_date* -- an end date for a range of transactions to export
+    # * *:transaction_type* -- the type of transaction to export (optional)
+    # * *:customer_id* -- a specific customer ID to export transactions for (optional)
+    # * *:transaction_user* -- the user who created the transaction (optional)
+    # * *:return_bin* -- if set to 'Y', card numbers from ExportTranx and ExportCustomers requests will include the first 6 and last 4 digits of the card number (optional)
+    # * *:search_text* -- text that will be searched to narrow down transaction and check results for ExportTranx and ExportCheck requests (optional)
+    def self.export_by_id(params = {})
+      response =  PayTrace::API::Gateway.send_request(EXPORT_TRANSACTIONS_METHOD, params, [:transaction_id], [
+        :transaction_type, 
+        :customer_id, 
+        :transaction_user, 
+        :return_bin,
+        :search_text])
       response.parse_records(EXPORT_TRANSACTIONS_RESPONSE)
     end
 
     # See http://help.paytrace.com/api-signature-capture-image
+    #
     # Attach Signature Request -- allows attaching a signature image to a transactions
-    # Parameters hash includes:
+    #
+    # Required parameters:
+    #
     # * *:transaction_id* -- the transaction ID to attach a signature image
-    # * *:image_data* -- the Base64 encoded image data
-    # * *:image_type* -- the type of image attached (e.g. "PNG", "JPG", etc.)
     # * *:image_file* -- the filename of an image file to load and Base64 encode
-    # _Note:_ only include the :image_data _or_ :image_file parameters. Also note that (due to technical limitations) if you supply the :image_file parameter, you must still supply the :image_type parameter.
-    def self.attach_signature(params = {})
+    # * *:image_type* -- the type of image attached (e.g. "PNG", "JPG", etc.)
+    def self.attach_signature_file(params = {})
       params = params.dup
-      if params.has_key?(:image_file) && !params.has_key?(:image_data)
-        File.open(params[:image_file], 'rb') do |file|
-          params[:image_data] = Base64.encode64(file.read)
-          params.delete(:image_file)
-        end
+      File.open(params[:image_file], 'rb') do |file|
+        params[:image_data] = Base64.encode64(file.read)
+        params.delete(:image_file)
       end
 
-      PayTrace::API::Gateway.send_request(ATTACH_SIGNATURE_METHOD, [:transaction_id, :image_data, :image_type], params)
+      PayTrace::API::Gateway.send_request(ATTACH_SIGNATURE_METHOD, params, [:transaction_id, :image_data, :image_type])
+    end
+
+    # See http://help.paytrace.com/api-signature-capture-image
+    #
+    # Attach Signature Request -- allows attaching a signature image to a transactions
+    #
+    # Required parameters:
+    #
+    # * *:transaction_id* -- the transaction ID to attach a signature image
+    # * *:image_data* -- the base-64 encoded image data of a signature
+    # * *:image_type* -- the type of image attached (e.g. "PNG", "JPG", etc.)
+    def self.attach_signature_data(params = {})
+      PayTrace::API::Gateway.send_request(ATTACH_SIGNATURE_METHOD, params, [:transaction_id, :image_data, :image_type])
     end
 
     # See http://help.paytrace.com/api-calculate-shipping-rates
+    #
     # Calculates the estimaged shipping cost to send a package of a given weight from a source zip to a destination.
     # Returns an array of potential shippers, such as USPS, Fedex, etc., and the estimated cost to ship the package
-    # Params hash includes:
+    #
+    # Required parameters:
+    #
     # * *:source_zip* -- the zip code the package will be shipped from
     # * *:source_state* -- the state the package will be shipped from
     # * *:shipping_postal_code* -- the postal (zip) code the package will be shipped to
@@ -253,22 +719,15 @@ module PayTrace
     # * *:shipping_weight* -- the weight of the package
     # * *:shippers* -- string of shipping service providers you would like shipping quotes from. String may contain USPS, FEDEX, or UPS, separated by commas, in any order or combination
     def self.calculate_shipping(params = {})
-      request = PayTrace::API::Request.new
-      request.set_param(:method, CALCULATE_SHIPPING_COST)
-      request.set_params([
+      response = PayTrace::API::Gateway.send_request(CALCULATE_SHIPPING_COST, params, [
         :source_zip,
         :source_state,
         :shipping_postal_code,
         :shipping_state,
         :shipping_weight,
         :shippers       
-      ], params)
-
-      gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request)      
-      unless response.has_errors?
-        response.parse_records(CALCULATE_SHIPPING_COST_RESPONSE)
-      end
+      ])
+      response.parse_records(CALCULATE_SHIPPING_COST_RESPONSE)
     end
 
     # See http://help.paytrace.com/api-adding-level-3-data-to-a-visa-sale
@@ -317,11 +776,10 @@ module PayTrace
     # * *:discount_li* -- discount amount applied to the transaction amount in reference to this line item record
     # * *:amount_li* -- total amount included in the transaction amount generated from this line item record
     def self.add_level_three_visa(params = {})
+      params = params.dup # don't modify the original!
+
       line_items = params.delete(:line_items) || []
-      request = PayTrace::API::Request.new
-      request.set_param(:method, LEVEL_3_VISA_METHOD)
-      request.set_params([
-        :transaction_id,
+      PayTrace::API::Gateway.send_request(LEVEL_3_VISA_METHOD, params, [:transaction_id], [
         :invoice,
         :customer_reference_id,
         :tax_amount,
@@ -337,15 +795,26 @@ module PayTrace
         :shipping_country,
         :add_tax,
         :add_tax_rate
-        ], params)
-      line_items.each do |li|
-        request.set_multivalue(:line_item, li)
-      end
+        ]) do |request|
 
-      gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request)      
-      unless response.has_errors?
-        response.values
+        line_items.each do |li|
+          missing, extra = PayTrace::API::Request.process_param_list([
+              :ccode_li,
+              :product_id,
+              :description,
+              :quantity,
+              :measure,
+              :unit_cost,
+              :add_tax_li,
+              :add_tax_rate_li,
+              :discount_li,
+              :amount_li
+            ], li)
+          if extra.any?
+            raise PayTrace::Exceptions::ValidationError.new("The following line-item parameters are unknown: #{extra.to_s}")
+          end
+          request.set_multivalue(:line_item, li)
+        end
       end
     end
 
@@ -397,11 +866,10 @@ module PayTrace
     # * *:discount_li* -- discount amount applied to the transaction amount in reference to this line item record
     # * *:discount_rate* -- rate at which discount was applied to the transaction in reference to this specific line item
     def self.add_level_three_mc(params = {})
+      params = params.dup # don't modify the original!
+
       line_items = params.delete(:line_items) || []
-      request = PayTrace::API::Request.new
-      request.set_param(:method, LEVEL_3_MC_METHOD)
-      request.set_params([
-        :transaction_id,
+      response = PayTrace::API::Gateway.send_request(LEVEL_3_MC_METHOD, params, [:transaction_id], [
         :invoice,
         :customer_reference_id,
         :tax_amount,
@@ -413,15 +881,31 @@ module PayTrace
         :shipping_country,
         :add_tax,
         :additional_tax_included
-        ], params)
-      line_items.each do |li|
-        request.set_multivalue(:line_item, li)
-      end
+        ]) do |request|
 
-      gateway = PayTrace::API::Gateway.new
-      response = gateway.send_request(request)      
-      unless response.has_errors?
-        response.values
+        line_items.each do |li|
+          missing, extra = PayTrace::API::Request.process_param_list([
+              :product_id,
+              :description,
+              :quantity,
+              :measure,
+              :merchant_tax_id,
+              :unit_cost,
+              :add_tax_li,
+              :add_tax_rate_li,
+              :additional_tax_included_li,
+              :amount_li,
+              :discount_included,
+              :discount_li,
+              :discount_rate,
+              :is_debit_or_credit,
+              :line_item_is_gross
+            ], li)
+          if extra.any?
+            raise PayTrace::Exceptions::ValidationError.new("The following line-item parameters are unknown: #{extra.to_s}")
+          end
+          request.set_multivalue(:line_item, li)
+        end
       end
     end
 
@@ -430,11 +914,8 @@ module PayTrace
     # Transactions processed through merchant accounts that are set up on the TSYS/Vital network or other terminal-based networks may initiate the settlement of batches through the PayTrace API.
     # 
     # No parameters are required.
-    def self.settle_transaction(params = {})
-      request = PayTrace::API::Request.new
-      request.set_param(:method, SETTLE_TRANSACTION_METHOD)
-      gateway = PayTrace::API::Gateway.new
-      gateway.send_request(request)      
+    def self.settle_transactions(params = {})
+      PayTrace::API::Gateway.send_request(SETTLE_TRANSACTION_METHOD, [], {})
     end
 
     # See http://help.paytrace.com/api-adjusting-transaction-amounts
@@ -448,70 +929,16 @@ module PayTrace
     #
     # Please note that amounts for cash advance transaction may also not be adjusted.
     #
-    # The parameters hash includes the following required parameters:
+    # Required parameters:
     #
     # *:transaction_id* -- a unique identifier for each transaction in the PayTrace system. This value is returned in the TRANSACTIONID parameter of an API response and will consequently be included in requests to email receipts, void transactions, add level 3 data, etc
     # *:amount* -- dollar amount of the transaction. Must be a positive number up to two decimal places
     def self.adjust_amount(params = {})
-      request = PayTrace::API::Request.new
-      request.set_param(:method, ADJUST_AMOUNT_METHOD)
-      request.set_param(:transaction_id, params[:transaction_id])
-      request.set_param(:amount, params[:amount])
-      gateway = PayTrace::API::Gateway.new
-      gateway.send_request(request)      
-    end
-
-    # :nodoc:
-    def add_transaction_info(request)
-      request.set_param(:transaction_type, type)
-      request.set_param(:method, TRANSACTION_METHOD)
-      request.set_param(:amount, amount)
-    end
-
-    def add_credit_card(request, cc)
-      cc.set_request(request)
-    end
-
-    def add_optional_fields(request)
-      o = optional_fields
-      o.each do |k,v|
-        request.set_param(k, v)
-      end
-
-
-    end
-
-    def add_addresses(request)
-      shipping_address.set_request(request) if shipping_address
-      billing_address.set_request(request) if billing_address
-    end
-
-    def include_optional(args)
-      s = nil
-      b = nil
-
-      b = args.delete(:billing_address)  if args[:billing_address]
-      @billing_address = PayTrace::Address.new({address_type: :billing}.merge(b)) if b
-      s =  args.delete(:shipping_address) if args[:shipping_address]
-      @shipping_address = PayTrace::Address.new({address_type: :shipping}.merge(s)) if s
-      if args[:address_shipping_same_as_billing]
-        @shipping_address = @billing_address
-      end
-
-      if args.any?
-        @optional_fields = args
-      end
-    end
-
-    def send_request
-      request = PayTrace::API::Request.new
-      self.set_request(request)
-
-      gateway = PayTrace::API::Gateway.new
-      gateway.send_request(request)
+      PayTrace::API::Gateway.send_request(ADJUST_AMOUNT_METHOD, params, [:transaction_id, :amount])  
     end
   end
 
+  # enumeration of transaction subtypes
   module TransactionTypes
     SALE = "SALE"
     Authorization = "Authorization"

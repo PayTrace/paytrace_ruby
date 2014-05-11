@@ -13,7 +13,7 @@ PayTrace::Debug.trace do
     invoice: "12346",
     customer_reference_id: "1234578",
     tax_amount: 31.76,
-    ntax: 0.00,
+    national_tax: 0.00,
     merchant_tax_id: "13692468",
     customer_tax_id: "12369240",
     ccode: "1234abcd",

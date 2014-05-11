@@ -83,6 +83,14 @@ describe PayTrace::API::Gateway do
       faraday.verify_stubbed_calls
     end
 
+    it "includes the last response object" do
+      PayTrace::API::Gateway.debug = true
+      request = PayTrace::API::Request.new
+      gateway = PayTrace::API::Gateway.new
+      response = gateway.send_request(request)
+      PayTrace::API::Gateway.last_response_object.must_equal response
+    end
+
     it "raises an ErrorResponse exception for errors" do
       PayTrace::API::Gateway.debug = true # to enable mock response
       PayTrace::API::Gateway.raise_exceptions = true

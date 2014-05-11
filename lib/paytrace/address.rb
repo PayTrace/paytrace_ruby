@@ -3,6 +3,7 @@ module PayTrace
   # _Note:_ the "region" parameter can only be defined for shipping addresses, and the
   # default address type (if unspecified) is billing.
   class Address
+    # :nodoc:
     attr_accessor :name, :street,:street2,:city,:state, :country,:region,:postal_code,:address_type
 
     ATTRIBUTE_MAP = [
@@ -15,6 +16,7 @@ module PayTrace
       [:postal_code, :postal_code],
       [:country, :country]
     ]
+    # :doc:
 
     # Initialize a new address instance. Parameters are symbolic keys in a hash. They are:
     # * *:name* -- the name on this address

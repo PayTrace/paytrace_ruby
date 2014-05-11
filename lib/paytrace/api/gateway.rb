@@ -14,6 +14,7 @@ module PayTrace
       @@last_response_object = nil
       @@next_response = nil
       @@raise_exceptions = true
+      # :doc:
 
       # Creates a new gateway object, optionally using a supplied connection object
       def initialize(connection = nil)
@@ -64,10 +65,10 @@ module PayTrace
       #
       # * *param_names* -- the array of parameter names to be set from *arguments*
       # * *arguments* -- the arguments to be set in the request
-      def self.send_request(method, param_names = nil, arguments = nil)
+      def self.send_request(method, params, required = [], optional = [])
         request = Request.new
         request.set_param(:method, method)
-        request.set_params(param_names, arguments) if param_names && arguments
+        request.set_params(params, required, optional)
         yield request if block_given?
 
         gateway = Gateway.new

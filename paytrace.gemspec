@@ -26,4 +26,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard", '~> 0'
   spec.add_development_dependency "guard-minitest", '~> 0'
   spec.add_development_dependency "ruby_gntp", '~> 0'
+  spec.add_development_dependency "simplecov", "~> 0.7.1"
 end

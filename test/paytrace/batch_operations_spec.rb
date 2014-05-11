@@ -10,16 +10,16 @@ describe PayTrace::BatchOperations do
     PayTrace::API::Gateway.reset_trace()
   end
 
-  describe "exportSingle" do
+  describe "export_single" do
     it "generates the correct request" do
       PayTrace::API::Gateway.next_response = "RESULT~Ok"
-      result = PayTrace::BatchOperations.exportSingle()
+      result = PayTrace::BatchOperations.export_single()
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::BatchOperations::EXPORT_SINGLE_METHOD)
     end
 
     it "accepts an optional batch number" do
       PayTrace::API::Gateway.next_response = "RESULT~Ok"
-      result = PayTrace::BatchOperations.exportSingle(batch_number: 12345)
+      result = PayTrace::BatchOperations.export_single(batch_number: 12345)
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::BatchOperations::EXPORT_SINGLE_METHOD) + "BATCHNUMBER~12345|"
     end
   end
@@ -27,7 +27,7 @@ describe PayTrace::BatchOperations do
   describe "exportMultiple" do
     it "generates the correct request" do
       PayTrace::API::Gateway.next_response = "RESULT~Ok"
-      result = PayTrace::BatchOperations.exportMultiple(start_date: "03/01/2014", end_date: "06/01/2014")
+      result = PayTrace::BatchOperations.export_multiple(start_date: "03/01/2014", end_date: "06/01/2014")
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::BatchOperations::EXPORT_MULTIPLE_METHOD) +
         "SDATE~03/01/2014|EDATE~06/01/2014|"
     end
@@ -36,7 +36,7 @@ describe PayTrace::BatchOperations do
   describe "exportDetails" do
     it "generates the correct request" do
       PayTrace::API::Gateway.next_response = "RESULT~Ok"
-      result = PayTrace::BatchOperations.exportDetails(batch_number: 12346)
+      result = PayTrace::BatchOperations.export_details(batch_number: 12346)
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::BatchOperations::EXPORT_DETAILS_METHOD) + "BATCHNUMBER~12346|"
     end
   end

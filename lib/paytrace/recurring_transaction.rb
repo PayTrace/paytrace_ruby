@@ -32,7 +32,7 @@ module PayTrace
     # * *:customer_id* -- a customer ID to export
     # _Note:_ only supply a recurrence ID _or_ a customer ID, not both.
     def self.export_scheduled(params = {})
-      response =  PayTrace::API::Gateway.send_request(EXPORT_SCHEDULED_METHOD, RECURRING_TRANSACTION_PARAMS, params)
+      response =  PayTrace::API::Gateway.send_request(EXPORT_SCHEDULED_METHOD, params, [], RECURRING_TRANSACTION_PARAMS)
       response.parse_records('RECURRINGPAYMENT')
     end
 
@@ -40,7 +40,7 @@ module PayTrace
     # Exports the single most recent recurring transaction for a given customer ID, Params: 
     # * *:customer_id* -- the customer ID to be exported for
     def self.export_approved(params = {})
-      PayTrace::API::Gateway.send_request(EXPORT_APPROVED_METHOD, RECURRING_TRANSACTION_PARAMS, params)
+      PayTrace::API::Gateway.send_request(EXPORT_APPROVED_METHOD, params, [], RECURRING_TRANSACTION_PARAMS)
     end
 
     # See http://help.paytrace.com/api-create-recurring-transaction
@@ -55,7 +55,7 @@ module PayTrace
     # * *:recur_receipt* -- "Y" to send a receipt to the customer at each recurrence; default is "N"
     # * *:recur_type* -- default value is "C" which represents credit card number. Alternative is "A" which represents an ACH/check transaction
     def self.create(params = {})
-      PayTrace::API::Gateway.send_request(CREATE_METHOD, RECURRING_TRANSACTION_PARAMS, params)
+      PayTrace::API::Gateway.send_request(CREATE_METHOD, params, [], RECURRING_TRANSACTION_PARAMS)
     end
 
     # See http://help.paytrace.com/api-deleting-a-recurring-transaction
@@ -65,7 +65,7 @@ module PayTrace
     # _Note:_ only supply a recurrence ID _or_ a customer ID, not both.
     def self.delete(params = {})
       fields = params.has_key?(:recur_id) ? [:recur_id] : [:customer_id]
-      response =  PayTrace::API::Gateway.send_request(DELETE_METHOD, fields, params)
+      response =  PayTrace::API::Gateway.send_request(DELETE_METHOD, params, [], fields)
     end
 
     # See http://help.paytrace.com/api-update-recurring-transaction
@@ -81,20 +81,7 @@ module PayTrace
     # * *:recur_receipt* -- "Y" to send a receipt to the customer at each recurrence; default is "N"
     # * *:recur_type* -- default value is "C" which represents credit card number. Alternative is "A" which represents an ACH/check transaction; _note:_ only use for check/ACH recurrences
     def self.update(params = {})
-      PayTrace::API::Gateway.send_request(UPDATE_METHOD, RECURRING_TRANSACTION_PARAMS, params)
-    end
-
-    # :nodoc:
-    def self.parse_response(response)
-      unless response.has_errors?
-        values = response.values
-
-        if values.has_key?("RECURRINGPAYMENT")
-          new(values["RECURRINGPAYMENT"])
-        else
-          values["RECURID"]
-        end
-      end
+      PayTrace::API::Gateway.send_request(UPDATE_METHOD, params, [], RECURRING_TRANSACTION_PARAMS)
     end
   end
 end

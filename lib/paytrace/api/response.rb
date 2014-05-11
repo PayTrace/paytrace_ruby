@@ -2,7 +2,9 @@ module PayTrace
   module API
     # An object representing an API response from sending a PayTrace::API::Request with a PayTrace::API::Gateway object
     class Response
+      # :nodoc:
       attr_reader :values, :errors
+      # :doc
 
       # Called by the PayTrace::API::Gateway object to initialize a response
       def initialize(response_string)
@@ -19,6 +21,7 @@ module PayTrace
         @errors.length > 0
       end
 
+      # given a field name, splits the data in that value into an array of record hashes
       def parse_records(field_name)
         records = []
 

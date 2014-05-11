@@ -11,7 +11,7 @@ module PayTrace
     # *:check_id* -- the check ID of the transaction to email
     # _Note:_ only use *:transaction_id* _or_ *:check_id* -- not both.
     def self.create(params = {})
-      PayTrace::API::Gateway.send_request(EMAIL_RECEIPT_METHOD, [:check_id, :transaction_id, :email], params)
+      PayTrace::API::Gateway.send_request(EMAIL_RECEIPT_METHOD, params, [:email], [:check_id, :transaction_id])
     end
   end
 end

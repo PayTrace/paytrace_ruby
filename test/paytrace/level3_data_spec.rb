@@ -69,13 +69,26 @@ describe PayTrace::Transaction do
             add_tax_rate_li: 0.45,
             discount_li: 1.87,
             amount_li: 6
-            }
-          ]
+          }
+        ]
       }
       PayTrace::Transaction.add_level_three_visa(params)
 
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::Transaction::LEVEL_3_VISA_METHOD) + 
         "TRANXID~1143|INVOICE~12346|CUSTREF~1234578|TAX~31.76|NTAX~0.00|MERCHANTTAXID~13692468|CUSTOMERTAXID~12369240|CCODE~1234abcd|DISCOUNT~4.53|FREIGHT~7.99|DUTY~6.52|SOURCEZIP~94947|SZIP~98133|SCOUNTRY~US|ADDTAX~4.78|ADDTAXRATE~0.43|LINEITEM~CCODELI=12345678+PRODUCTID=E123125+DESCRIPTION=Widgets and wodgets+QUANTITY=20+MEASURE=foo+UNITCOST=3.99+ADDTAXLI=3.82+ADDTAXRATELI=0.44+DISCOUNTLI=1.86+AMOUNTLI=5|LINEITEM~CCODELI=12345679+PRODUCTID=D987654+DESCRIPTION=It's log!+QUANTITY=42+MEASURE=bar+UNITCOST=3.98+ADDTAXLI=3.81+ADDTAXRATELI=0.45+DISCOUNTLI=1.87+AMOUNTLI=6|"
+    end
+
+    it "detects extra line item details for visa" do
+      params = {
+        transaction_id: "1143",
+        line_items: 
+        [
+          {
+            billing_name: "John Doe"
+          }
+        ]
+      }
+      -> {PayTrace::Transaction.add_level_three_visa(params)}.must_raise PayTrace::Exceptions::ValidationError
     end
 
   # Required Name Value Pairs
@@ -131,6 +144,19 @@ describe PayTrace::Transaction do
 
       PayTrace::API::Gateway.last_request.must_equal base_url(PayTrace::Transaction::LEVEL_3_MC_METHOD) + 
         "TRANXID~1143|INVOICE~12347|CUSTREF~1234579|TAX~31.78|NTAX~0.01|FREIGHT~7.98|DUTY~6.51|SOURCEZIP~94948|SZIP~98134|SCOUNTRY~US|ADDTAX~4.54|ADDTAXIND~Y|LINEITEM~PRODUCTID=E123126+DESCRIPTION=Wadgets and wudgets+QUANTITY=21+MEASURE=food+MERCHANTTAXID=13699468+UNITCOST=3.98+ADDTAXRATELI=0.45+ADDTAXINDLI=Y+ADDTAXLI=3.82+DISCOUNTIND=Y+AMOUNTLI=6+NETGROSSIND=Y+DCIND=D+DISCOUNTLI=1.86+DISCOUNTRATE=0.10|"
+    end
+
+    it "detects extra line item details for mastercard" do
+      params = {
+        transaction_id: "1143",
+        line_items: 
+        [
+          {
+            billing_name: "John Doe"
+          }
+        ]
+      }
+      -> {PayTrace::Transaction.add_level_three_mc(params)}.must_raise PayTrace::Exceptions::ValidationError
     end
   end
 end

@@ -1,9 +1,11 @@
 module PayTrace
   # This class serves as a container for batch processing methods
   class BatchOperations
+    # :nodoc:
     EXPORT_SINGLE_METHOD = "ExportBatch"
     EXPORT_MULTIPLE_METHOD = "ExportBatches"
     EXPORT_DETAILS_METHOD = "ExportBatchDetails"
+    # :doc:
 
     # See http://help.paytrace.com/api-export-single-batch
     #
@@ -12,8 +14,8 @@ module PayTrace
     # Optional parameters hash:
     #
     # * *:batch_number* -- number of the batch of transactions you wish to export
-    def self.exportSingle(params = {})
-      PayTrace::API::Gateway.send_request(EXPORT_SINGLE_METHOD, [:batch_number], params)
+    def self.export_single(params = {})
+      PayTrace::API::Gateway.send_request(EXPORT_SINGLE_METHOD, params, [], [:batch_number])
     end
 
     # See http://help.paytrace.com/api-export-batches
@@ -22,8 +24,8 @@ module PayTrace
     #
     # * *:start_date* -- indicates when to start searching for transactions to export. Must be a valid date formatted as MM/DD/YYYY
     # * *:end_date* -- indicates when to end searching for transactions to export. Must be a valid date formatted as MM/DD/YYYY
-    def self.exportMultiple(params = {})
-      PayTrace::API::Gateway.send_request(EXPORT_MULTIPLE_METHOD, [:start_date, :end_date], params)
+    def self.export_multiple(params = {})
+      PayTrace::API::Gateway.send_request(EXPORT_MULTIPLE_METHOD, params, [:start_date, :end_date])
     end
 
     # See http://help.paytrace.com/api-export-batch-details
@@ -31,8 +33,8 @@ module PayTrace
     # Exports transaction details of a given batch. Required parameters hash:
     #
     # * *:batch_number* -- number of the batch of transactions you wish to export
-    def self.exportDetails(params = {})
-      PayTrace::API::Gateway.send_request(EXPORT_DETAILS_METHOD, [:batch_number], params)
+    def self.export_details(params = {})
+      PayTrace::API::Gateway.send_request(EXPORT_DETAILS_METHOD, params, [:batch_number])
     end
   end
 end

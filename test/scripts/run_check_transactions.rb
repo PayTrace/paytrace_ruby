@@ -17,11 +17,10 @@ PayTrace::Debug.trace do
   check_type: "Sale",
   amount: 15.99,
   # replace this with a valid customer ID
-  customer_id: 'MoMouse',
-  test_flag: 'Y'  
+  customer_id: 'MoMouse'
 }
 
-  PayTrace::CheckTransaction::process_sale(params)
+  PayTrace::CheckTransaction::customer_id_sale(params)
 end
 
 # process manage check -- this is invalid data, you can replace with a valid check number 

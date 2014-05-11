@@ -1,4 +1,4 @@
-# $:<< "./lib" # uncomment this to run against a Git clone instead of an installed gem
+$:<< "./lib" # uncomment this to run against a Git clone instead of an installed gem
 
 require "paytrace"
 require "paytrace/debug"
@@ -14,4 +14,4 @@ params = {
   # transaction_id: 1143
 }
 
-PayTrace::Debug.trace { puts PayTrace::Transaction.export(params) }
+PayTrace::Debug.trace { puts PayTrace::Transaction.export_by_date_range(params) }

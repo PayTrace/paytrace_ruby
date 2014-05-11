@@ -104,8 +104,8 @@ module PayTrace
       end
 
       # Sets multiple parameters at once
-      # * *:keys* -- an array of key names to extract from the params hash
       # * *:params* -- the hash or object to fetch the parameters from
+      # * *:required* -- an array of required key names to extract from the params object
       #
       # _Note:_ the values in *:keys* can also include arrays of two values (techincally, a tuple). The sub-array contains the name of the field that will be used in the request, and the name of the field in the params. This allows more succinct parameter names; e.g. *:address* instead of *:billing_address*. Example:
       #
@@ -117,24 +117,46 @@ module PayTrace
       #       :foo,
       #       [:billing_address, :address]
       #     ], params) 
-      def set_params(keys, params)
-        if params.is_a?(Hash)
-          accessor = :[]
-        else
-          accessor = :send
-        end
-
-        keys.each do |key|
-          if key.is_a?(Array)
-            request_variable = key[0]
-            arg_name = key[1]
-          else
-            request_variable = arg_name = key
-          end
-
-          value = params.send(accessor, arg_name)
+      def set_params(params, required = [], optional = [])
+        required_remaining, params_remaining = Request.process_param_list(required, params) do |request_variable, arg_name, value|
           set_param(request_variable, value)
         end
+
+        # if we're missing *required* parameters, fail...
+        raise PayTrace::Exceptions::ValidationError.new("Missing the following required parameters: #{required_remaining.to_s}") if required_remaining.any?
+
+        optional_remaining, params_remaining = Request.process_param_list(optional, params_remaining) do |request_variable, arg_name, value|
+          set_param(request_variable, value)
+        end
+
+        # if we have any EXTRA parameters, fail...
+        raise PayTrace::Exceptions::ValidationError.new("The following parameters are unknown: #{params_remaining.to_s}") if params_remaining && params_remaining.any?
+      end
+
+      # takes a list of permitted keys and a params hash, and returns any missing or extra params, optionally
+      # calling a supplied block once per key
+      def self.process_param_list(key_list, params, &block)
+        if params.is_a?(Hash)
+          accessor = :[]
+          track_params = true
+        else
+          accessor = :send
+          track_params = false
+        end
+        params_remaining = params.dup if track_params
+
+        remaining = key_list.dup
+        key_list.each do |key|
+          request_variable, arg_name = key # de-alias the name, if it's aliased
+          arg_name ||= request_variable # just use the same name for both, if not
+
+          value = params.send(accessor, arg_name) # this allows us to treat hashes and objects the same
+          yield request_variable, arg_name, value if block_given?
+          remaining.delete(key) if value
+          params_remaining.delete(arg_name) if track_params
+        end
+
+        return (remaining.map {|req,arg| arg || req}), (track_params ? params_remaining : nil)
       end
     end
   end

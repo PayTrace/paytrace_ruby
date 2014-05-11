@@ -1,4 +1,5 @@
 require 'paytrace'
+require 'minitest/autorun'
 
 module PayTrace
   # Useful helper methods for debugging.
@@ -23,6 +24,11 @@ module PayTrace
     # Formatted output for a text message.
     def self.log(msg)
       puts ">>>>>>           #{msg}"
+    end
+
+    # split a raw request string into an array of name-value tuples
+    def self.split_request_string(raw)
+      raw.split('|').map {|kv_pair| kv_pair.split('~')}
     end
 
     # Helper method to dump a request response pair. Usage:
@@ -53,6 +59,36 @@ module PayTrace
         config.password = pw
         config.domain = domain
       end
+    end
+
+    # verify whether two requests match
+    def self.diff_requests(expected_raw, actual_raw, case_sensitive = false)
+      whats_wrong = []
+
+      expected = PayTrace::Debug.split_request_string(expected_raw).map {|tuple| case_sensitive ? tuple : [tuple[0].upcase, tuple[1]]}
+      actual = PayTrace::Debug.split_request_string(actual_raw).map {|tuple| case_sensitive ? tuple : [tuple[0].upcase, tuple[1]]}
+
+      expected_remaining = []
+      actual_extra = actual.dup
+
+      expected.each do |tuple|
+        idx = actual_extra.find_index(tuple)
+        if idx.nil?
+          expected_remaining << tuple
+        else
+          actual_extra.delete_at(idx)
+        end
+      end
+
+      expected_remaining.each do |tuple|
+        whats_wrong << "Missing expected property #{tuple[0]}~#{tuple[1]}"
+      end
+
+      actual_extra.each do |tuple|
+        whats_wrong << "Extra unexpected property #{tuple[0]}~#{tuple[1]}"
+      end
+
+      whats_wrong
     end
   end
 end

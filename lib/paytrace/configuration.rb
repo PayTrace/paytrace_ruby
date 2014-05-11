@@ -1,9 +1,11 @@
 module PayTrace
   # Contains necessary configuration to access the API server; notably the user name, password, and URL information
   class Configuration
+    # :nodoc:
     attr_accessor :user_name, :password, :connection, :domain, :path
 
     RESET_PASSWORD_METHOD = "UpdatePassword"
+    # :doc:
 
     # Default initializer. Do not call directly; instead use the PayTrace.configure method
     # Example:
