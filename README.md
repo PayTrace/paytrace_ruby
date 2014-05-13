@@ -2,11 +2,6 @@
 
 ![Build Status](https://www.codeship.io/projects/611ffe60-f3ee-0130-0299-1a84c3740ef1/status)
 
-*This SDK is actively under development but should still be considered in an alpha
-state. It does not provide all the access we are planning to our API at this time.
-Please feel free to experiment with it and we will be regularly pushing out new
-updates with increased functionality over the coming weeks*
-
 This gem integrates with the PayTrace API. It provides functionality to the
 publicly available functionality including:
 
@@ -14,6 +9,7 @@ publicly available functionality including:
  * Creating Customers
  * Exporting Transaction or Customer Data
 
+ Note that the gem is intended to be a "thin shim" around the public API, cleaning up and organizing the URL-based function calls. It is designed to be consumed by other code for payment processing.
 
 ## Installation
 
@@ -46,15 +42,15 @@ end
 ### Transactions
 
 Transactions can be processed utilizing class methods on the PayTrace::Transaction
-class.
+class. A simple example:
 
 ```ruby
-transaction = Transaction.sale(
-    {amount: "1.00",
-    credit_card: {
-        card_number: "1111222233334444",
-        expiration_year: 14,
-        expiration_month: 3
+response = Transaction.sale(
+    {
+      amount: "1.00",
+      card_number: "1111222233334444",
+      expiration_year: 14,
+      expiration_month: 3
     }
   }
 )
@@ -62,12 +58,12 @@ transaction = Transaction.sale(
 #
 ## Response information is available on the transaction
 #
-puts transaction.response_code # 101. Your transaction was successfully approved.
+puts response.get_response() # 101. Your transaction was successfully approved.
 
 #
-## All values returned are accessible through the attached response property
+## All values returned are accessible through the response
 #
-transaction.response.each do |key, value|
+response.values do |key, value|
     puts key      # e.g. APPCODE
     puts value    # TAS671
 end
@@ -77,21 +73,19 @@ end
 
 ```ruby
 # running a transaction for a customer
-transaction = Transaction.sale({amount: "1.00",customer: my_customer_id})
+Transaction.sale({amount: "1.00",customer: my_customer_id})
 
 ```
 ### Some Optional Fields
 ```ruby
 #Adding Optional Fields
 
-transaction = Transaction.Sale(
+Transaction.Sale(
   {
     amount: "1.00",
-    credit_card: {
-        card_number: "1111222233334444",
-        expiration_year: 14,
-        expiration_month: 3
-    },
+    card_number: "1111222233334444",
+    expiration_year: 14,
+    expiration_month: 3,
     email:"me@example.com",
     description:"This is a test",
     tax_amount:".50",
@@ -103,27 +97,20 @@ transaction = Transaction.Sale(
 
 ### Billing and Shipping Address
 ```ruby
-transaction = Transaction.Sale(
-    {amount: "1.00",
-    credit_card: {
+Transaction.Sale(
+    {
+      amount: "1.00",
       card_number: "1111222233334444",
       expiration_year: 14,
-      expiration_month: 3
-    },  
-    billing_address:{
-        name:"Jane Doe",
-        street:"1234 happy st.",
-        street2:"apt#2",
-        city:"Seattle",
-        state:"WA",
-        country: "US",
-        postal_code:"98107"
-    },
-      shipping_address: {
-        #Same as billing above.
-      }
-    }
-)
+      expiration_month: 3,  
+      billing_name:"Jane Doe",
+      billing_address:"1234 happy st.",
+      billing_address2:"apt#2",
+      billing_city:"Seattle",
+      billing_state:"WA",
+      billing_country: "US",
+      billing_postal_code:"98107"
+    })
 
 ```
 
