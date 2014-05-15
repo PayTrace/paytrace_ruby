@@ -94,6 +94,35 @@ PayTrace::Transaction::add_level_three_visa(params)
 
 puts "*** Successfully added level 3 data to transaction_id #{transaction_id}"
 
+#
+# Perform a keyed-in authorization
+#
+
+params = {
+  amount: 21.99,
+  card_number: 4111111111111111,
+  expiration_month: 10,
+  expiration_year: 24
+}
+
+response = PayTrace::Transaction::keyed_authorization(params)
+
+auth_transaction_id = response.values["TRANSACTIONID"]
+
+puts "*** Successfully performed a keyed authorization of $#{params[:amount]} to card number #{params[:card_number]}, transaction_id #{auth_transaction_id}"
+
+#
+# Perform a capture on an authorized transaction
+#
+
+params = {
+  transaction_id: auth_transaction_id
+}
+
+PayTrace::Transaction::capture(params)
+
+puts "*** Successfully captured authorized transaction_id #{auth_transaction_id}"
+
 # 
 # Void a known transaction ID
 #
