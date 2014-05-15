@@ -61,12 +61,17 @@ module PayTrace
       end
     end
 
+    # helper method to make CodeClimate happy
+    def self.split_tuples(raw, case_sensitive = false)
+      PayTrace::Debug.split_request_string(raw).map {|tuple| case_sensitive ? tuple : [tuple[0].upcase, tuple[1]]}
+    end
+
     # verify whether two requests match
     def self.diff_requests(expected_raw, actual_raw, case_sensitive = false)
       whats_wrong = []
 
-      expected = PayTrace::Debug.split_request_string(expected_raw).map {|tuple| case_sensitive ? tuple : [tuple[0].upcase, tuple[1]]}
-      actual = PayTrace::Debug.split_request_string(actual_raw).map {|tuple| case_sensitive ? tuple : [tuple[0].upcase, tuple[1]]}
+      expected = PayTrace::Debug.split_tuples(expected_raw, case_sensitive)
+      actual = PayTrace::Debug.split_tuples(actual_raw, case_sensitive)
 
       expected_remaining = []
       actual_extra = actual.dup

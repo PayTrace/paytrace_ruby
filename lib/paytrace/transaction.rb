@@ -90,6 +90,21 @@ module PayTrace
 
     STORE_AND_FORWARD_OPTIONAL = ALL_OPTIONAL_FIELDS + [:store_forward_date]
 
+    CASH_ADVANCE_REQUIRED = [
+      :transaction_type,
+      :amount,
+      :cash_advance,
+      :id_number,
+      :id_expiration,
+      :cc_last_4,
+      :billing_name,
+      :billing_address,
+      :billing_address2,
+      :billing_city,
+      :billing_state,
+      :billing_postal_code
+    ]
+
     CASH_ADVANCE_OPTIONAL = [
       :billing_country,
       :shipping_name,
@@ -119,10 +134,7 @@ module PayTrace
     # * *:expiration_month* -- the expiration month of the credit card
     # * *:expiration_year* -- the expiration year of the credit card
     def self.keyed_sale(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::SALE}),
-        KEYED_SALE_REQUEST_REQUIRED,
-        KEYED_SALE_REQUEST_OPTIONAL)
+      send_transaction(params, TransactionTypes::SALE, KEYED_SALE_REQUEST_REQUIRED, KEYED_SALE_REQUEST_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-sale
@@ -134,10 +146,7 @@ module PayTrace
     # * *:amount* -- the amount of the transaction
     # * *:swipe* -- credit card swipe data (card swiped sales)
     def self.swiped_sale(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::SALE}),
-        SWIPED_SALE_REQUEST_REQUIRED,
-        SWIPED_SALE_REQUEST_OPTIONAL)
+      send_transaction(params, TransactionTypes::SALE, SWIPED_SALE_REQUEST_REQUIRED, SWIPED_SALE_REQUEST_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-sale
@@ -177,10 +186,7 @@ module PayTrace
     # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token sale)
     # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
     def self.customer_id_sale(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::SALE}),
-        CUSTID_SALE_REQUEST_REQUIRED,
-        CUSTID_SALE_REQUEST_OPTIONAL)
+      send_transaction(params, TransactionTypes::SALE, CUSTID_SALE_REQUEST_REQUIRED, CUSTID_SALE_REQUEST_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-authorizations
@@ -194,9 +200,11 @@ module PayTrace
     # * *:expiration_month* -- the expiration month of the credit card
     # * *:expiration_year* -- the expiration year of the credit card
     def self.keyed_authorization(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::Authorization}),
-        [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year])
+      send_transaction(
+        params,
+        TransactionTypes::Authorization,
+        [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year],
+        [])
     end
 
     # See http://help.paytrace.com/api-authorizations
@@ -208,8 +216,7 @@ module PayTrace
     # * *:amount* -- the amount of the transaction
     # * *:customer_id* -- the customer ID to reference for this authorization
     def self.customer_id_authorization(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::Authorization}), [:transaction_type, :amount, :customer_id])
+      send_transaction(params, TransactionTypes::Authorization, [:transaction_type, :amount, :customer_id], [])
     end
 
     # See http://help.paytrace.com/api-refunds
@@ -249,8 +256,7 @@ module PayTrace
     # * *:custom_dba* -- optional value that is sent to the cardholder’s issuer and overrides the business name stored in PayTrace. Custom DBA values are only used with requests to process sales or authorizations through accounts on the TSYS/Vital, Heartland, and Trident networks (customer ID token sale)
     # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
     def self.swiped_refund(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::Refund}), [:transaction_type, :amount, :swipe], REFUND_OPTIONAL)
+      send_transaction(params, TransactionTypes::Refund, [:transaction_type, :amount, :swipe], REFUND_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-refunds
@@ -266,13 +272,11 @@ module PayTrace
     # 
     # _Note:_ optional parameters are identical to those for swiped_refund
     def self.keyed_refund(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD, 
-        params.merge({transaction_type: TransactionTypes::Refund}), [
-          :transaction_type,
-          :amount,
-          :card_number,
-          :expiration_month,
-          :expiration_year], REFUND_OPTIONAL)
+      send_transaction(
+        params,
+        TransactionTypes::Refund,
+        [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year],
+        REFUND_OPTIONAL)
     end
     
 
@@ -287,8 +291,11 @@ module PayTrace
     # 
     # _Note:_ optional parameters are identical to those for swiped_refund
     def self.customer_id_refund(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::Refund}), [:transaction_type, :amount, :customer_id], REFUND_OPTIONAL)
+      send_transaction(
+        params,
+        TransactionTypes::Refund,
+        [:transaction_type, :amount, :customer_id],
+        REFUND_OPTIONAL)
     end
 
 
@@ -303,8 +310,11 @@ module PayTrace
     # 
     # _Note:_ optional parameters are identical to those for swiped_refund
     def self.transaction_id_refund(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::Refund}), [:transaction_type, :transaction_id], REFUND_OPTIONAL)
+      send_transaction(
+        params, 
+        TransactionTypes::Refund,
+        [:transaction_type, :transaction_id],
+        REFUND_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-void
@@ -315,8 +325,7 @@ module PayTrace
     #
     # * *:transaction_id* -- the transaction ID to void
     def self.void(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::Void}), [:transaction_type, :transaction_id])
+      send_transaction(params, TransactionTypes::Void, [:transaction_type, :transaction_id], [])
     end
 
     # See http://help.paytrace.com/api-forced-sale
@@ -329,8 +338,10 @@ module PayTrace
     # * *:swipe* -- credit card swipe data (card swiped sales)
     # * *:approval_code* -- the approval code obtained external to the PayTrace system
     def self.swiped_forced_sale(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::ForcedSale}), [:transaction_type, :amount, :swipe, :approval_code],
+      send_transaction(
+        params,
+        TransactionTypes::ForcedSale,
+        [:transaction_type, :amount, :swipe, :approval_code],
         ADDRESSES_AND_EXTRA)
     end
 
@@ -346,8 +357,10 @@ module PayTrace
     # * *:expiration_year* -- the expiration year of the credit card
     # * *:approval_code* -- the approval code obtained external to the PayTrace system
     def self.keyed_forced_sale(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::ForcedSale}), [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year, :approval_code],
+      send_transaction(
+        params,
+        TransactionTypes::ForcedSale,
+        [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year, :approval_code],
         ADDRESSES_AND_EXTRA)
     end
 
@@ -361,8 +374,10 @@ module PayTrace
     # * *:customer_id -- the customer ID for the forced sale 
     # * *:approval_code* -- the approval code obtained external to the PayTrace system
     def self.customer_id_forced_sale(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::ForcedSale}), [:transaction_type, :amount, :customer_id, :approval_code],
+      send_transaction(
+        params,
+        TransactionTypes::ForcedSale,
+        [:transaction_type, :amount, :customer_id, :approval_code],
         ADDRESSES_AND_EXTRA)
     end
 
@@ -376,8 +391,10 @@ module PayTrace
     # * *:transaction_id -- the transaction ID for the forced sale 
     # * *:approval_code* -- the approval code obtained external to the PayTrace system
     def self.transaction_id_forced_sale(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::ForcedSale}), [:transaction_type, :transaction_id, :approval_code],
+      send_transaction(
+        params,
+        TransactionTypes::ForcedSale,
+        [:transaction_type, :transaction_id, :approval_code],
         ADDRESSES_AND_EXTRA)
     end
 
@@ -389,8 +406,11 @@ module PayTrace
     #
     # * *transaction_id* -- the transaction ID to be captured
     def self.capture(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::Capture}), [:transaction_type, :transaction_id])
+      send_transaction(
+        params,
+        TransactionTypes::Capture,
+        [:transaction_type, :transaction_id],
+        [])
     end
 
     # See http://help.paytrace.com/api-cash-advance
@@ -426,21 +446,11 @@ module PayTrace
     # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
     # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
     def self.swiped_cash_advance(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::SALE, cash_advance: 'Y'}), [
-          :transaction_type,
-          :amount,
-          :swipe,
-          :cash_advance,
-          :id_number,
-          :id_expiration,
-          :cc_last_4,
-          :billing_name,
-          :billing_address,
-          :billing_address2,
-          :billing_city,
-          :billing_state,
-          :billing_postal_code], CASH_ADVANCE_OPTIONAL)
+      send_transaction(
+        {cash_advance: 'Y'}.merge(params),
+        TransactionTypes::SALE,
+        CASH_ADVANCE_REQUIRED + [:swipe],
+        CASH_ADVANCE_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-cash-advance
@@ -478,23 +488,11 @@ module PayTrace
     # * *:tax_amount* -- the amount of tax on the sale (customer ID token or referenced transaction sale)
     # * *:customer_reference_id* -- a customer reference ID (customer ID token or referenced transaction sale)
     def self.keyed_cash_advance(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::SALE, cash_advance: 'Y'}), [
-          :transaction_type,
-          :amount,
-          :card_number,
-          :expiration_month,
-          :expiration_year,
-          :cash_advance,
-          :id_number,
-          :id_expiration,
-          :cc_last_4,
-          :billing_name,
-          :billing_address,
-          :billing_address2,
-          :billing_city,
-          :billing_state,
-          :billing_postal_code], CASH_ADVANCE_OPTIONAL)
+      send_transaction(
+        {cash_advance: 'Y'}.merge(params), 
+        TransactionTypes::SALE,
+        CASH_ADVANCE_REQUIRED + [:card_number, :expiration_month, :expiration_year],
+        CASH_ADVANCE_OPTIONAL)
       end
 
     # See http://help.paytrace.com/api-store-and-forward
@@ -535,8 +533,7 @@ module PayTrace
     # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
     # * *:store_forward_date* -- optional future date when the transaction should be authorized and settled. Only applicable if the TranxType is STR/FWD
     def self.swiped_store_forward(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::StoreForward}), [:transaction_type, :amount, :swipe], STORE_AND_FORWARD_OPTIONAL)
+      send_transaction(params, TransactionTypes::StoreForward, [:transaction_type, :amount, :swipe], STORE_AND_FORWARD_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-store-and-forward
@@ -579,8 +576,11 @@ module PayTrace
     # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
     # * *:store_forward_date* -- optional future date when the transaction should be authorized and settled. Only applicable if the TranxType is STR/FWD
     def self.keyed_store_forward(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::StoreForward}), [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year], STORE_AND_FORWARD_OPTIONAL)
+      send_transaction(
+        params,
+        TransactionTypes::StoreForward,
+        [:transaction_type, :amount, :card_number, :expiration_month, :expiration_year],
+        STORE_AND_FORWARD_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-store-and-forward
@@ -621,8 +621,11 @@ module PayTrace
     # * *:enable_partial_authentication* -- flag that must be set to ‘Y’ in order to support partial authorization and balance amounts in transaction responses (customer ID token sale)
     # * *:store_forward_date* -- optional future date when the transaction should be authorized and settled. Only applicable if the TranxType is STR/FWD
     def self.customer_id_store_forward(params)
-      PayTrace::API::Gateway.send_request(TRANSACTION_METHOD,
-        params.merge({transaction_type: TransactionTypes::StoreForward}), [:transaction_type, :amount, :customer_id], STORE_AND_FORWARD_OPTIONAL)
+      send_transaction(
+        params,
+        TransactionTypes::StoreForward,
+        [:transaction_type, :amount, :customer_id],
+        STORE_AND_FORWARD_OPTIONAL)
     end
 
     # See http://help.paytrace.com/api-export-transaction-information
@@ -936,6 +939,17 @@ module PayTrace
     def self.adjust_amount(params = {})
       PayTrace::API::Gateway.send_request(ADJUST_AMOUNT_METHOD, params, [:transaction_id, :amount])  
     end
+
+    # private helper method to DRY things up a bit
+    def self.send_transaction(params, type, required, optional)
+      PayTrace::API::Gateway.send_request(
+        TRANSACTION_METHOD,
+        {transaction_type: type}.merge(params),
+        required, 
+        optional)
+    end
+
+    private_class_method :send_transaction
   end
 
   # enumeration of transaction subtypes

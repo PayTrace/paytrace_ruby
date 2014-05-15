@@ -46,9 +46,6 @@ PayTrace::Debug.trace do
   PayTrace::Customer.from_cc_info(params)
 end
 
-# turn exceptions back on
-PayTrace::API::Gateway.raise_exceptions = true
-
 # Debug.trace monitors requests and responses and prints some diagnostic info. You can omit this if you don't need it.
 PayTrace::Debug.trace do
   params = {
