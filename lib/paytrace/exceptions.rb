@@ -11,6 +11,15 @@ module PayTrace
 
     # Raised by default when an error response is returned from the server
     class ErrorResponse < Base
+      attr_reader :response
+
+      def initialize(response)
+        @response = response
+      end
+
+      def to_s
+        @response.get_response()
+      end
     end
   end
 end

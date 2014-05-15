@@ -92,7 +92,7 @@ module PayTrace
         @@next_response = nil # just to be sure
 
         if @@raise_exceptions && response.has_errors?
-          raise PayTrace::Exceptions::ErrorResponse.new(response.get_response())
+          raise PayTrace::Exceptions::ErrorResponse.new(response)
         else
           response
         end
