@@ -21,6 +21,12 @@ module PayTrace
         @errors.length > 0
       end
 
+      # gets the API response code from the response.  there should be only be one if there are no errors.
+      def code
+          code = parse_code(@values["RESPONSE"])
+          code.first
+      end
+
       # given a field name, splits the data in that value into an array of record hashes
       def parse_records(field_name)
         records = []
@@ -58,6 +64,18 @@ module PayTrace
           k,v = p.split(@value_delim)
           k = generate_error_key(k,v)
           @errors[k] = v
+        end
+      end
+
+      def parse_code(response)
+        if (response.kind_of? Array)
+          response.map do |code_and_text|
+            k,v = code_and_text.split(/\.\s/, 2)
+            k.to_i
+          end
+        else
+          k, v = response.split(/\.\s/, 2)
+          [k.to_i]
         end
       end
 

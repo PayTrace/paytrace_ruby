@@ -27,5 +27,18 @@ describe PayTrace::API::Response do
     response.get_response().must_equal actual
   end
 
+  describe "give not response field" do
+    it "should return errors" do
+    end
+  end
 
+  describe "given a response with a api reponse code" do
+    before do
+      @from_server = "RESPONSE~100. Your password was successfully updated."
+    end
+    it "should be able to parse out the code" do
+      response = PayTrace::API::Response.new(@from_server)
+      response.code.must_equal 100
+    end
+  end
 end
