@@ -27,7 +27,23 @@ describe PayTrace::API::Response do
     response.get_response().must_equal actual
   end
 
+  describe "given network error" do
+    it "should raise exception" do
+      @from_server = "COMMERROR"
+      assert_raises PayTrace::Exceptions::NetworkError do
+        @response = PayTrace::API::Response.new(@from_server)
+      end
+    end
+    it "should raise exception" do
+      @from_server = "COMM ERROR"
+      assert_raises PayTrace::Exceptions::NetworkError do
+        @response = PayTrace::API::Response.new(@from_server)
+      end
+    end
+  end
+
   describe "when getting response code" do
+
     describe "given no RESPONSE field" do
       before do
         @from_server = "NO RESPONSE"

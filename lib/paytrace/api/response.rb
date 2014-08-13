@@ -13,6 +13,10 @@ module PayTrace
         @multi_value_delim = "+"
         @values = {}
         @errors = {}
+
+        if response_string.include? 'COMMERROR' or response_string.include? 'COMM ERROR' 
+          raise PayTrace::Exceptions::NetworkError, "Request was not processed due to a connectivity issue."
+        end
         parse_response(response_string)
       end
 
