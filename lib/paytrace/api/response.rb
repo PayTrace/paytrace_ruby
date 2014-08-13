@@ -23,8 +23,15 @@ module PayTrace
 
       # gets the API response code from the response.  there should be only be one if there are no errors.
       def code
-          code = parse_code(@values["RESPONSE"])
-          code.first
+        if !@values.has_key? 'RESPONSE'
+          if has_errors? 
+            raise PayTrace::Exceptions::ValidationError, get_error_response
+          else
+            raise PayTrace::Exceptions::ValidationError, "missing response field"
+          end
+        end
+        code = parse_code(@values["RESPONSE"])
+        code.first
       end
 
       # given a field name, splits the data in that value into an array of record hashes
