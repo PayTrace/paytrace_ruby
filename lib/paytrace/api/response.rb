@@ -13,12 +13,29 @@ module PayTrace
         @multi_value_delim = "+"
         @values = {}
         @errors = {}
+
+        if response_string.include? 'COMMERROR' or response_string.include? 'COMM ERROR' 
+          raise PayTrace::Exceptions::NetworkError, "Request was not processed due to a connectivity issue."
+        end
         parse_response(response_string)
       end
 
       # Returns true if the response contained any error codes
       def has_errors?
         @errors.length > 0
+      end
+
+      # gets the API response code from the response.  there should be only be one if there are no errors.
+      def code
+        if !@values.has_key? 'RESPONSE'
+          if has_errors? 
+            raise PayTrace::Exceptions::ValidationError, get_error_response
+          else
+            raise PayTrace::Exceptions::ValidationError, "missing response field"
+          end
+        end
+        code = parse_code(@values["RESPONSE"])
+        code.first
       end
 
       # given a field name, splits the data in that value into an array of record hashes
@@ -58,6 +75,18 @@ module PayTrace
           k,v = p.split(@value_delim)
           k = generate_error_key(k,v)
           @errors[k] = v
+        end
+      end
+
+      def parse_code(response)
+        if (response.kind_of? Array)
+          response.map do |code_and_text|
+            k,v = code_and_text.split(/\.\s/, 2)
+            k.to_i
+          end
+        else
+          k, v = response.split(/\.\s/, 2)
+          [k.to_i]
         end
       end
 

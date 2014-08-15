@@ -9,6 +9,9 @@ module PayTrace
     class ValidationError < Base
     end
 
+    class NetworkError < Base
+    end
+
     # Raised by default when an error response is returned from the server
     class ErrorResponse < Base
       attr_reader :response
