@@ -42,9 +42,10 @@ module PayTrace
 
       begin
         yield
-      rescue Exception => e
+      rescue PayTrace::Exceptions::ErrorResponse => e
         puts "[REQUEST] #{PayTrace::API::Gateway.last_request}"
-
+        puts "[RESPONSE] #{PayTrace::API::Gateway.last_response}"
+        
         raise
       else
         dump_transaction
