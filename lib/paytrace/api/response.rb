@@ -43,7 +43,7 @@ module PayTrace
         records = []
 
         [@values[field_name]].flatten.each do |raw_record|
-          records << Hash[raw_record.split(@multi_value_delim).map {|pair| pair.split('=')}]
+          records << Hash[raw_record.split(@multi_value_delim).map {|pair| pair.split('=',2)}]
         end
 
         records

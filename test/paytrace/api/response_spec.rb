@@ -3,13 +3,24 @@ require 'paytrace/api/response'
 
 describe PayTrace::API::Response do
 
-  it "it does not treat the word error in the middle of sentence as error" do
-    from_server = "TRANSACTIONRECORD~TRANXID=1000+CC=************1234+APPMSG=FOOBAR in email|TRANSACTIONRECORD~TRANXID=2000+CC=************5678+APPMSG=ERROR in name"
-    responseObj = PayTrace::API::Response.new(from_server)
-    responseObj.has_errors?.must_equal false
-    responseObj.errors.length.must_equal 0
-  end
+  describe "When parsing records into fields that have multiple values" do
+    
+    it "will only split on first value delimiter" do
+      from_server = "TRANSACTIONRECORD~TRANXID=1000+CC=************1234+APPMSG=FOOBAR=in email|TRANSACTIONRECORD~TRANXID=2000+CC=************5678+APPMSG=ERROR in name"
+      responseObj = PayTrace::API::Response.new(from_server)
+      fields = responseObj.parse_records("TRANSACTIONRECORD")
+      fields[0]["APPMSG"].must_equal "FOOBAR=in email"
+    end
+  
+    it "it does not treat the word error in the middle of sentence as error" do
+      from_server = "TRANSACTIONRECORD~TRANXID=1000+CC=************1234+APPMSG=FOOBAR in email|TRANSACTIONRECORD~TRANXID=2000+CC=************5678+APPMSG=ERROR in name"
+      responseObj = PayTrace::API::Response.new(from_server)
+      responseObj.has_errors?.must_equal false
+      responseObj.errors.length.must_equal 0
+    end
 
+  end
+  
   it "parses a successful transaction response" do
     from_server = "RESPONSE~101. Your transaction was successfully approved.|TRANSACTIONID~93|APPCODE~TAS671|APPMSG~APPROVAL TAS671 - Approved and completed|AVSRESPONSE~0|CSCRESPONSE~|"
     response = PayTrace::API::Response.new(from_server)        
