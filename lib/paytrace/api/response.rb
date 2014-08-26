@@ -52,7 +52,7 @@ module PayTrace
       # Called by the initialize method
       def parse_response(response_string)
 
-        if (response_string.include? "ERROR")
+        if (response_string.include? "ERROR~")
            return parse_errors(response_string)
         end
 

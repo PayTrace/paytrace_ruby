@@ -2,6 +2,14 @@ require File.expand_path(File.dirname(__FILE__) + '../../../test_helper.rb')
 require 'paytrace/api/response'
 
 describe PayTrace::API::Response do
+
+  it "it does not treat the word error in the middle of sentence as error" do
+    from_server = "TRANSACTIONRECORD~TRANXID=1000+CC=************1234+APPMSG=FOOBAR in email|TRANSACTIONRECORD~TRANXID=2000+CC=************5678+APPMSG=ERROR in name"
+    responseObj = PayTrace::API::Response.new(from_server)
+    responseObj.has_errors?.must_equal false
+    responseObj.errors.length.must_equal 0
+  end
+
   it "parses a successful transaction response" do
     from_server = "RESPONSE~101. Your transaction was successfully approved.|TRANSACTIONID~93|APPCODE~TAS671|APPMSG~APPROVAL TAS671 - Approved and completed|AVSRESPONSE~0|CSCRESPONSE~|"
     response = PayTrace::API::Response.new(from_server)        
