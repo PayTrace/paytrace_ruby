@@ -27,4 +27,5 @@ params = {
   discretionary_data: { hair_color: "blue" }
 }
 
+# will throw error because customer_id is not unique.  is expected.
 PayTrace::Debug.trace { PayTrace::Customer.from_cc_info(params) }

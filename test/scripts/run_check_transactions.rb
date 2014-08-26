@@ -62,17 +62,8 @@ PayTrace::Debug.trace do
     check_type: "Refund",
     amount: 15.99,
     customer_id: "MMouse",
-    billing_address: ba,
-    shipping_address: sa,
-    email: "tom@paytrace.com",
-    invoice: "abc1234",
-    description: "accidental billing",
-    tax: 2.99,
-    customer_reference_id: '1234AB',
-    discretionary_data: {
-      hair_color: :red
-    }
+    
   }
 
-  PayTrace::CheckTransaction::process_refund(params)
+  PayTrace::CheckTransaction::refund_by_customer_id(params)
 end
