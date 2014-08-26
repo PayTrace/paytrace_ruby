@@ -43,7 +43,7 @@ module PayTrace
         records = []
 
         [@values[field_name]].flatten.each do |raw_record|
-          records << Hash[raw_record.split(@multi_value_delim).map {|pair| pair.split('=')}]
+          records << Hash[raw_record.split(@multi_value_delim).map {|pair| pair.split('=',2)}]
         end
 
         records
@@ -52,7 +52,7 @@ module PayTrace
       # Called by the initialize method
       def parse_response(response_string)
 
-        if (response_string.include? "ERROR")
+        if (response_string.include? "ERROR~")
            return parse_errors(response_string)
         end
 
