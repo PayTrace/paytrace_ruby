@@ -24,12 +24,13 @@ PayTrace::Debug.trace do
   result = PayTrace::BatchOperations.export_multiple(params)
 end
 
+#THIS TAKES A LONG TIME COMMENTING OUT.
 # export batch transaction details
-PayTrace::Debug.trace do
-  params = {
-    batch_number: 413
-  }
-  puts "About to export transaction details for batch number #{params[:batch_number]}..."
-  STDIN.getc
-  result = PayTrace::BatchOperations.export_details(params)
-end
+# PayTrace::Debug.trace do
+#   params = {
+#     batch_number: 413
+#   }
+#   puts "About to export transaction details for batch number #{params[:batch_number]}..."
+#   STDIN.getc
+#   result = PayTrace::BatchOperations.export_details(params)
+# end
