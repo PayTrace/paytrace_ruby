@@ -114,6 +114,15 @@ Transaction.Sale(
 
 ```
 
+## Deprecation
+
+This Ruby gem code references our Legacy API which PayTrace no longer encourage to integrate with. 
+
+PayTrace has a new API with Client-Side Encryption support. You can find related documentation, integration info and available samplecode at: https://developers.paytrace.com/support/home
+
+If you have any questions or concerns, please feel free to reach out to our Technical support at: developersupport@paytrace.com.
+
+
 
 
 ## Contributing
